@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "Utils.h"
+#include "majorrp_config.h"
 #include "Main.h"
 #include "Dialogs.h"
 #include <array>
@@ -1254,8 +1255,8 @@ void RelaunchAsAdmin(const SString& strCmdLine, const SString& strReason)
 {
     HideSplash();
     AddReportLog(7115, SString("Loader - Request to elevate privileges (%s)", *strReason));
-    MessageBoxUTF8(NULL, SString(_("MTA:SA needs Administrator access for the following task:\n\n  '%s'\n\nPlease confirm in the next window."), *strReason),
-                   "Multi Theft Auto: San Andreas", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+    MessageBoxUTF8(NULL, SString(_(MAJORRP_PRODUCT_NAME " needs Administrator access for the following task:\n\n  '%s'\n\nPlease confirm in the next window."), *strReason),
+                   MAJORRP_PRODUCT_NAME, MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
     ReleaseSingleInstanceMutex();
     ShellExecuteNonBlocking("runas", PathJoin(GetMTASAPath(), MTA_EXE_NAME), strCmdLine);
 }
@@ -1862,7 +1863,7 @@ void MaybeShowCopySettingsDialog()
                             "\n"
                             "Do you want to copy your settings from %s ?"),
                           *strCurrentVersion, *strPreviousVersion);
-    int iResponse = MessageBoxUTF8(NULL, strMessage, "MTA: San Andreas", MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
+    int iResponse = MessageBoxUTF8(NULL, strMessage, MAJORRP_PRODUCT_NAME, MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
     if (iResponse != IDYES)
         return;
 
@@ -2072,7 +2073,7 @@ void BsodDetectionPreLaunch()
         {
             // Ask user to confirm
             int iResponse =
-                MessageBoxUTF8(NULL, _("Did your computer restart when playing MTA:SA?"), "MTA: San Andreas", MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
+                MessageBoxUTF8(NULL, _("Did your computer restart when playing MTA:SA?"), MAJORRP_PRODUCT_NAME, MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
             if (iResponse == IDYES)
             {
                 SetApplicationSetting("diagnostics", "user-confirmed-bsod-time", strMinidumpTime);

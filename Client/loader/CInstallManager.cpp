@@ -455,8 +455,8 @@ SString CInstallManager::_ChangeToAdmin()
     if (!IsUserAdmin())
     {
         MessageBoxUTF8(
-            NULL, SString(_("MTA:SA needs Administrator access for the following task:\n\n  '%s'\n\nPlease confirm in the next window."), *m_strAdminReason),
-            "Multi Theft Auto: San Andreas", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+            NULL, SString(_(MAJORRP_PRODUCT_NAME " needs Administrator access for the following task:\n\n  '%s'\n\nPlease confirm in the next window."), *m_strAdminReason),
+            MAJORRP_PRODUCT_NAME, MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
         SetIsBlockingUserProcess();
         ReleaseSingleInstanceMutex();
         if (ShellExecuteBlocking("runas", GetLauncherPathFilename(), GetSequencerSnapshot()))
@@ -470,8 +470,8 @@ SString CInstallManager::_ChangeToAdmin()
         }
         CreateSingleInstanceMutex();
         ClearIsBlockingUserProcess();
-        MessageBoxUTF8(NULL, SString(_("MTA:SA could not complete the following task:\n\n  '%s'\n"), *m_strAdminReason),
-                       "Multi Theft Auto: San Andreas" + _E("CL01"), MB_OK | MB_ICONWARNING | MB_TOPMOST);
+        MessageBoxUTF8(NULL, SString(_(MAJORRP_PRODUCT_NAME " could not complete the following task:\n\n  '%s'\n"), *m_strAdminReason),
+                       MAJORRP_PRODUCT_NAME + _E("CL01"), MB_OK | MB_ICONWARNING | MB_TOPMOST);
     }
     return "fail";
 }
@@ -1839,7 +1839,7 @@ SString CInstallManager::_ProcessLangFileChecks()
         strMessage += PathJoin(strTextFilePath, langFileNames[0]);
         strMessage += "\n\n";
         strMessage += _("If MTA fails to load, please re-install GTA:SA");
-        MessageBoxUTF8(NULL, strMessage, "Multi Theft Auto: San Andreas", MB_OK | MB_ICONWARNING | MB_TOPMOST);
+        MessageBoxUTF8(NULL, strMessage, MAJORRP_PRODUCT_NAME, MB_OK | MB_ICONWARNING | MB_TOPMOST);
         return "ok";
     }
 
@@ -1872,6 +1872,12 @@ SString CInstallManager::_ProcessServiceChecks()
 #if MTASA_VERSION_TYPE != VERSION_TYPE_CUSTOM
     if (!CheckService(CHECK_SERVICE_PRE_GAME))
     {
+    #if MAJORRP_NO_SERVICE_ADMIN_PROMPT
+        // MAJOR RP: MTA's closed anti-cheat service check never passes for this fork, so asking
+        // for admin here only repeats on every start. Carry on without it.
+        AddReportLog(8071, "MAJOR RP: CheckService PRE_GAME failed, continuing without admin");
+        return "ok";
+    #endif
         if (!IsNativeArm64Host() && !IsUserAdmin())
         {
             m_strAdminReason = _("Update install settings");

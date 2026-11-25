@@ -27,3 +27,7 @@
 // 1 = an unzipped build sets itself up on first run (asks for admin once):
 //     creates ProgramData folders and the registry key and lets normal users write to them
 #define MAJORRP_PORTABLE_SETUP 1
+
+// 1 = don't ask for admin on every start when MTA's closed anti-cheat service check fails.
+//     That check never passes for this fork, so the prompts only repeated without fixing anything.
+#define MAJORRP_NO_SERVICE_ADMIN_PROMPT 1

@@ -608,7 +608,7 @@ void HandleTrouble()
 
 #if !defined(MTA_DEBUG) && MTASA_VERSION_TYPE != VERSION_TYPE_CUSTOM
     int iResponse = MessageBoxUTF8(NULL, _("Are you having problems running MTA:SA?.\n\nDo you want to revert to an earlier version?"),
-                                   "MTA: San Andreas" + _E("CL07"), MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
+                                   MAJORRP_PRODUCT_NAME + _E("CL07"), MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
     if (iResponse == IDYES)
     {
         BrowseToSolution("crashing-before-gtagame", TERMINATE_PROCESS);
@@ -637,7 +637,7 @@ void HandleResetSettings()
         int iResponse = MessageBoxUTF8(NULL,
                                        _("There seems to be a problem launching MTA:SA.\nResetting GTA settings can sometimes fix this problem.\n\nDo you want "
                                          "to reset GTA settings now?"),
-                                       "MTA: San Andreas" + _E("CL08"), MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
+                                       MAJORRP_PRODUCT_NAME + _E("CL08"), MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
         if (iResponse == IDYES)
         {
             FileDelete(strSettingsFilenameBak);
@@ -650,7 +650,7 @@ void HandleResetSettings()
             if (!FileExists(strSettingsFilename))
             {
                 AddReportLog(4053, "Deleted gta_sa.set");
-                MessageBoxUTF8(NULL, _("GTA settings have been reset.\n\nPress OK to continue."), "MTA: San Andreas", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+                MessageBoxUTF8(NULL, _("GTA settings have been reset.\n\nPress OK to continue."), MAJORRP_PRODUCT_NAME, MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
             }
             else
             {
@@ -663,7 +663,7 @@ void HandleResetSettings()
     else
     {
         // No settings to delete, or can't find them
-        int iResponse = MessageBoxUTF8(NULL, _("Are you having problems running MTA:SA?.\n\nDo you want to see some online help?"), "MTA: San Andreas",
+        int iResponse = MessageBoxUTF8(NULL, _("Are you having problems running MTA:SA?.\n\nDo you want to see some online help?"), MAJORRP_PRODUCT_NAME,
                                        MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
         if (iResponse == IDYES)
         {
@@ -703,7 +703,7 @@ void HandleNotUsedMainMenu()
                 SString strMessage = _("Are you having problems running MTA:SA?.\n\nDo you want to change the following setting?");
                 strMessage += "\n" + _("Fullscreen mode:") + " -> " + _("Borderless window");
                 HideSplash();
-                int iResponse = MessageBoxUTF8(NULL, strMessage, "MTA: San Andreas", MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
+                int iResponse = MessageBoxUTF8(NULL, strMessage, MAJORRP_PRODUCT_NAME, MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
                 if (iResponse == IDYES)
                 {
                     // Change to borderless window mode
@@ -1869,7 +1869,7 @@ int LaunchGame(SString strCmdLine)
     SetDllDirectory(PathJoin(strMTASAPath, "mta"));
 
 #if MTASA_VERSION_TYPE != VERSION_TYPE_CUSTOM
-    if (!CheckService(CHECK_SERVICE_PRE_CREATE) && !IsUserAdmin())
+    if (!CheckService(CHECK_SERVICE_PRE_CREATE) && !IsUserAdmin() && !MAJORRP_NO_SERVICE_ADMIN_PROMPT)  // MAJOR RP: see majorrp_config.h
     {
         RelaunchAsAdmin(strCmdLine, _("Fix configuration issue"));
         ExitProcess(EXIT_OK);
@@ -2135,7 +2135,7 @@ int LaunchGame(SString strCmdLine)
                                    "MTA: San Andreas has been terminated due to an integrity violation.\n\n"
                                    "Make sure that no external program is modifying the game. Note that some unreliable "
                                    "AV's (such as Bitdefender) are known to interfere in a way that can lead to this problem.",
-                                   "MTA: San Andreas", MB_OK | MB_ICONWARNING | MB_TOPMOST);
+                                   MAJORRP_PRODUCT_NAME, MB_OK | MB_ICONWARNING | MB_TOPMOST);
                 }
                 else
                 {
@@ -2171,7 +2171,7 @@ int LaunchGame(SString strCmdLine)
                                    "MTA: San Andreas has been terminated due to an AC integrity violation.\n\n"
                                    "Make sure that no external program is modifying the game. Note that some unreliable "
                                    "AV's (such as Bitdefender) are known to interfere in a way that can lead to this problem.",
-                                   "MTA: San Andreas", MB_OK | MB_ICONWARNING | MB_TOPMOST);
+                                   MAJORRP_PRODUCT_NAME, MB_OK | MB_ICONWARNING | MB_TOPMOST);
                 }
                 else if (werInfo.found)
                 {
@@ -2318,7 +2318,7 @@ int LaunchGame(SString strCmdLine)
                                    "MTA: San Andreas has been terminated due to an integrity violation.\n\n"
                                    "Make sure that no external program is modifying the game. Note that some unreliable "
                                    "AV's (such as Bitdefender) are known to interfere in a way that can lead to this problem.",
-                                   "MTA: San Andreas", MB_OK | MB_ICONWARNING | MB_TOPMOST);
+                                   MAJORRP_PRODUCT_NAME, MB_OK | MB_ICONWARNING | MB_TOPMOST);
 
                     SetApplicationSetting("diagnostics", "debugger-crash-capture", "1");
                     WriteDebugEvent(SString("Loader - AC integrity exit via exit code, one-shot debugger flag SET (exit code 0x%08X)", rawExitCode));
