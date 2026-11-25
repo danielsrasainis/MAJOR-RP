@@ -7,7 +7,7 @@ jobs:
   windows:
     strategy:
       matrix:
-        platform: [win32]  # MAJOR RP: the game client is 32-bit; this also builds the Windows server
+        platform: [win32, x64]  # MAJOR RP: win32 = game client, x64 = Windows server (32-bit server is no longer supported)
     name: windows-${{ matrix.platform }}
     runs-on: windows-2025-vs2026
     steps:
@@ -49,6 +49,29 @@ jobs:
         with:
           name: MAJORRP-${{ matrix.platform }}
           path: InstallFiles/
+
+  package-windows:
+    # MAJOR RP: one ready-to-run folder = 32-bit client + 64-bit Windows server
+    name: package-windows
+    needs: windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: MAJORRP-win32
+          path: MAJORRP
+      - uses: actions/download-artifact@v7
+        with:
+          name: MAJORRP-x64
+          path: x64
+      - name: Add the 64-bit Windows server to the client folder
+        run: |
+          cp -rn x64/server/. MAJORRP/server/
+          ls -la MAJORRP/server MAJORRP/server/x64 || true
+      - uses: actions/upload-artifact@v6
+        with:
+          name: MAJORRP-windows
+          path: MAJORRP/
 
   linux:
     strategy:
