@@ -173,6 +173,23 @@ CGUI_Impl::CGUI_Impl(IDirect3DDevice9* pDevice)
     {
         CreateFntFromWinFont("majorrp-title", "Tahoma Bold (TrueType)", "tahomabd.ttf", 9, 0);
     }
+    // MAJOR RP: extra sizes used by the download box
+    const struct { const char* name; const char* file; unsigned int size; } extraFonts[] = {
+        {"majorrp-title-big", CGUI_MAJORRP_TITLE_FONT, 15},
+        {"majorrp-big", "cgui/" CGUI_MTA_DEFAULT_FONT_BOLD, 22},
+        {"majorrp-stat", "cgui/" CGUI_MTA_DEFAULT_FONT_BOLD, 12},
+    };
+    for (const auto& font : extraFonts)
+    {
+        try
+        {
+            CreateFnt(font.name, font.file, font.size, 0, false);
+        }
+        catch (const CEGUI::Exception&)
+        {
+            // Labels keep their default font if this one is missing
+        }
+    }
 #endif
 
     try

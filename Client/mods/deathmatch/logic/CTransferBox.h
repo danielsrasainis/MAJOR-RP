@@ -45,6 +45,7 @@ public:
 
 private:
     void CreateTransferWindow();
+    void CreateMajorRPWindow();  // MAJOR RP: modern download box
 
     void UpdateWindowVisibility() const;
 
@@ -58,6 +59,24 @@ private:
     std::array<std::unique_ptr<CGUIStaticImage>, 10> m_iconImages;
     size_t                                           m_iconIndex;
     CElapsedTime                                     m_iconTimer;
+
+    // MAJOR RP: modern download box
+    bool                                            m_majorRP = false;
+    std::unique_ptr<CGUIStaticImage>                m_card;
+    std::unique_ptr<CGUIStaticImage>                m_logo;
+    std::unique_ptr<CGUIStaticImage>                m_track;
+    std::unique_ptr<CGUIStaticImage>                m_fill;
+    std::unique_ptr<CGUILabel>                      m_title;
+    std::unique_ptr<CGUILabel>                      m_subtitle;
+    std::unique_ptr<CGUILabel>                      m_percent;
+    std::unique_ptr<CGUILabel>                      m_footer;
+    std::array<std::unique_ptr<CGUIStaticImage>, 3> m_statBox;
+    std::array<std::unique_ptr<CGUILabel>, 3>       m_statKey;
+    std::array<std::unique_ptr<CGUILabel>, 3>       m_statValue;
+    float                                           m_trackWidth = 0;
+    uint64_t                                        m_lastBytes = 0;
+    long long                                       m_lastTick = 0;
+    double                                          m_speed = 0;  // bytes per second (smoothed)
 
     enum VisibilitySource
     {
