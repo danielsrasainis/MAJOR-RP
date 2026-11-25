@@ -139,9 +139,28 @@ CGUI_Impl::CGUI_Impl(IDirect3DDevice9* pDevice)
     }
 
     // Window fonts first
+#if MAJORRP_SINGLE_SKIN
+    // MAJOR RP: bundled UI font, loaded like cgui/sans.ttf; falls back to Tahoma if it can't be loaded
+    try
+    {
+        m_pDefaultFont = (CGUIFont_Impl*)CreateFnt("default-normal", "cgui/" CGUI_MTA_DEFAULT_FONT, 9, 0, false);
+        m_pSmallFont = (CGUIFont_Impl*)CreateFnt("default-small", "cgui/" CGUI_MTA_DEFAULT_FONT, 7, 0, false);
+        m_pBoldFont = (CGUIFont_Impl*)CreateFnt("default-bold-small", "cgui/" CGUI_MTA_DEFAULT_FONT_BOLD, 8, 0, false);
+    }
+    catch (const CEGUI::Exception&)
+    {
+        if (!m_pDefaultFont)
+            m_pDefaultFont = (CGUIFont_Impl*)CreateFntFromWinFont("default-normal", "Tahoma (TrueType)", "tahoma.ttf", 9, 0);
+        if (!m_pSmallFont)
+            m_pSmallFont = (CGUIFont_Impl*)CreateFntFromWinFont("default-small", "Tahoma (TrueType)", "tahoma.ttf", 7, 0);
+        if (!m_pBoldFont)
+            m_pBoldFont = (CGUIFont_Impl*)CreateFntFromWinFont("default-bold-small", "Tahoma Bold (TrueType)", "tahomabd.ttf", 8, 0);
+    }
+#else
     m_pDefaultFont = (CGUIFont_Impl*)CreateFntFromWinFont("default-normal", CGUI_MTA_DEFAULT_REG, CGUI_MTA_DEFAULT_FONT, 9, 0);
     m_pSmallFont = (CGUIFont_Impl*)CreateFntFromWinFont("default-small", CGUI_MTA_DEFAULT_REG, CGUI_MTA_DEFAULT_FONT, 7, 0);
     m_pBoldFont = (CGUIFont_Impl*)CreateFntFromWinFont("default-bold-small", CGUI_MTA_DEFAULT_REG_BOLD, CGUI_MTA_DEFAULT_FONT_BOLD, 8, 0);
+#endif
     m_pClearFont = (CGUIFont_Impl*)CreateFntFromWinFont("clear-normal", CGUI_MTA_CLEAR_REG, CGUI_MTA_CLEAR_FONT, 9);
 
 #if MAJORRP_SINGLE_SKIN
@@ -152,7 +171,7 @@ CGUI_Impl::CGUI_Impl(IDirect3DDevice9* pDevice)
     }
     catch (const CEGUI::Exception&)
     {
-        CreateFntFromWinFont("majorrp-title", CGUI_MTA_DEFAULT_REG_BOLD, CGUI_MTA_DEFAULT_FONT_BOLD, 9, 0);
+        CreateFntFromWinFont("majorrp-title", "Tahoma Bold (TrueType)", "tahomabd.ttf", 9, 0);
     }
 #endif
 

@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 #include "Dialogs.h"
 #include "resource.h"
 #include "Utils.h"
@@ -512,7 +513,7 @@ void StopPseudoProgress()
     {
         try
         {
-            MessageBoxA(nullptr, "MTA has crashed."sv.data(), "MTA: San Andreas"sv.data(), MB_OK | MB_ICONERROR | MB_TOPMOST);
+            MessageBoxA(nullptr, "MTA has crashed."sv.data(), MAJORRP_PRODUCT_NAME, MB_OK | MB_ICONERROR | MB_TOPMOST);
         }
         catch (...)
         {
@@ -578,7 +579,7 @@ void StopPseudoProgress()
         {
             try
             {
-                MessageBoxA(nullptr, "MTA has crashed."sv.data(), "MTA: San Andreas"sv.data(), MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND);
+                MessageBoxA(nullptr, "MTA has crashed."sv.data(), MAJORRP_PRODUCT_NAME, MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND);
             }
             catch (...)
             {
@@ -1240,7 +1241,7 @@ void TestDialogs()
     }
     HideProgressDialog();
 
-    ShowProgressDialog( g_hInstance, "MTA: San Andreas" );
+    ShowProgressDialog( g_hInstance, MAJORRP_PRODUCT_NAME );
     for ( uint i = 0 ; i < 100 ; i++ )
     {
         UpdateProgress( i, 100, _("Installing update...") );
@@ -1248,7 +1249,7 @@ void TestDialogs()
     }
     HideProgressDialog();
 
-    ShowProgressDialog( g_hInstance, "MTA: San Andreas" );
+    ShowProgressDialog( g_hInstance, MAJORRP_PRODUCT_NAME );
     for ( uint i = 0 ; i < 100 ; i++ )
     {
         UpdateProgress( i, 100, _("Extracting files..." ) );
