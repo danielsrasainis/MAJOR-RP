@@ -172,7 +172,7 @@ CMainMenu::CMainMenu(CGUI* pManager)
     m_pVersion->SetProperty("InheritsAlpha", "False");
     m_pVersion->SetVisible(false);  // MAJOR RP: hide the "1.7" badge next to the logo
 
-    float fBase = 0.613f;
+    float fBase = 0.685f;  // MAJOR RP: between the logo and the orange line
     float fGap = 0.043f;
     // Our disconnect item is shown/hidden dynamically, so we store it separately
     m_pDisconnect = CreateItem(MENU_ITEM_DISCONNECT, "menu_disconnect.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * 0));
