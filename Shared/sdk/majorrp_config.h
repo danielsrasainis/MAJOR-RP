@@ -46,3 +46,7 @@
 
 // English only: no language button on the menu, Settings shows only English, locale forced to en_US
 #define MAJORRP_ENGLISH_ONLY 1
+
+// One GUI skin only (Shared/data/MTA San Andreas/skins/MAJOR RP); the skin chooser is hidden
+#define MAJORRP_SINGLE_SKIN 1
+#define MAJORRP_GUI_SKIN    "MAJOR RP"

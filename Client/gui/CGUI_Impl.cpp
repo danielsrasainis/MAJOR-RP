@@ -35,12 +35,22 @@ void CGUI_Impl::DestroyElementRecursive(CGUIElement* pElement)
     delete pElement;
 }
 
+#include "majorrp_config.h"
+#if MAJORRP_SINGLE_SKIN
+// MAJOR RP: modern UI font shipped in MTA/cgui (Inter, SIL Open Font License); window titles use Action Man
+#define CGUI_MTA_DEFAULT_FONT      "majorrp-body.otf"       // GTA/MTA/cgui/<...>
+#define CGUI_MTA_DEFAULT_FONT_BOLD "majorrp-body-bold.otf"  // GTA/MTA/cgui/<...>
+#define CGUI_MTA_DEFAULT_REG       "MAJOR RP Body (not installed)"
+#define CGUI_MTA_DEFAULT_REG_BOLD  "MAJOR RP Body Bold (not installed)"
+#define CGUI_MAJORRP_TITLE_FONT    "cgui/majorrp-title.ttf"
+#else
 #define CGUI_MTA_DEFAULT_FONT      "tahoma.ttf"    // %WINDIR%/font/<...>
 #define CGUI_MTA_DEFAULT_FONT_BOLD "tahomabd.ttf"  // %WINDIR%/font/<...>
-#define CGUI_MTA_CLEAR_FONT        "verdana.ttf"   // %WINDIR%/font/<...>
-
 #define CGUI_MTA_DEFAULT_REG      "Tahoma (TrueType)"
 #define CGUI_MTA_DEFAULT_REG_BOLD "Tahoma Bold (TrueType)"
+#endif
+#define CGUI_MTA_CLEAR_FONT        "verdana.ttf"   // %WINDIR%/font/<...>
+
 #define CGUI_MTA_CLEAR_REG        "Verdana (TrueType)"
 
 #define CGUI_MTA_SUBSTITUTE_FONT "cgui/unifont.ttf"   // GTA/MTA/<...>
@@ -133,6 +143,18 @@ CGUI_Impl::CGUI_Impl(IDirect3DDevice9* pDevice)
     m_pSmallFont = (CGUIFont_Impl*)CreateFntFromWinFont("default-small", CGUI_MTA_DEFAULT_REG, CGUI_MTA_DEFAULT_FONT, 7, 0);
     m_pBoldFont = (CGUIFont_Impl*)CreateFntFromWinFont("default-bold-small", CGUI_MTA_DEFAULT_REG_BOLD, CGUI_MTA_DEFAULT_FONT_BOLD, 8, 0);
     m_pClearFont = (CGUIFont_Impl*)CreateFntFromWinFont("clear-normal", CGUI_MTA_CLEAR_REG, CGUI_MTA_CLEAR_FONT, 9);
+
+#if MAJORRP_SINGLE_SKIN
+    // MAJOR RP: window title font, used by the skin's title bar (falls back to the bold UI font)
+    try
+    {
+        CreateFnt("majorrp-title", CGUI_MAJORRP_TITLE_FONT, 10, 0, false);
+    }
+    catch (const CEGUI::Exception&)
+    {
+        CreateFntFromWinFont("majorrp-title", CGUI_MTA_DEFAULT_REG_BOLD, CGUI_MTA_DEFAULT_FONT_BOLD, 9, 0);
+    }
+#endif
 
     try
     {

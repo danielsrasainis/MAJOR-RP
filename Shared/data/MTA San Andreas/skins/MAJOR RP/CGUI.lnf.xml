@@ -17,7 +17,7 @@
                 <Image type="TopEdge" imageset="CGUI-Images" image="FrameTop" />
                 <Image type="RightEdge" imageset="CGUI-Images" image="FrameRight" />
                 <Image type="BottomEdge" imageset="CGUI-Images" image="FrameBottom" />
-                <Image type="Background" imageset="CGUI-Images" image="GenericBrush" />
+                <Image type="Background" imageset="CGUI-Images" image="FrameBackground" />
             </FrameComponent>
         </ImagerySection>
       
@@ -68,7 +68,7 @@
                     <Dim type="RightEdge"><UnifiedDim scale="1" offset="-8" type="RightEdge" /></Dim>
                     <Dim type="BottomEdge"><UnifiedDim scale="1" offset="-8" type="BottomEdge" /></Dim>
                 </Area>
-                <Image type="Background" imageset="CGUI-Images" image="GenericBrush" />
+                <Image type="Background" imageset="CGUI-Images" image="FrameBackground" />
             </FrameComponent>
         </ImagerySection>
 
@@ -116,6 +116,7 @@
                     <Dim type="RightEdge"><UnifiedDim scale="1" offset="-22" type="RightEdge" /></Dim>
                     <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
                 </Area>
+                <Text font="majorrp-title" string="" />
                 <ColourProperty name="CaptionColour" />
                 <VertFormat type="CentreAligned" />
                 <HorzFormat type="CentreAligned" />
@@ -186,9 +187,9 @@
     </WidgetLook>
 
     <WidgetLook name="CGUI/TabButton">
-        <Property name="NormalTextColour" value="FF7D7D7D" />
-        <Property name="HoverTextColour" value="FF7D7D7D" />
-        <Property name="PushedTextColour" value="FFFFFFFF" />
+        <Property name="NormalTextColour" value="FF9A9088" />
+        <Property name="HoverTextColour" value="FFE8E2DC" />
+        <Property name="PushedTextColour" value="FFFF8C1A" />
         <Property name="DisabledTextColour" value="FF000000" />
         <Property name="WantsMultiClickEvents" value="False" />
         <ImagerySection name="frame">
@@ -220,7 +221,7 @@
                 <Image type="LeftEdge" imageset="CGUI-Images" image="FrameLeft" />
                 <Image type="TopEdge" imageset="CGUI-Images" image="FrameTop" />
                 <Image type="RightEdge" imageset="CGUI-Images" image="FrameRight" />
-                <Image type="Background" imageset="CGUI-Images" image="GenericBrush" />
+                <Image type="Background" imageset="CGUI-Images" image="FrameBackground" />
             </FrameComponent>
         </ImagerySection>
         <ImagerySection name="label">
@@ -238,7 +239,7 @@
         <StateImagery name="Normal">
             <Layer>
                 <Section section="inactive_frame">
-                    <Colours topLeft="FF171717" topRight="FF171717" bottomLeft="FF171717" bottomRight="FF171717" />
+                    <Colours topLeft="FFC0C0C0" topRight="FFC0C0C0" bottomLeft="FFC0C0C0" bottomRight="FFC0C0C0" />
                 </Section>
                 <Section section="label">
                     <ColourProperty name="NormalTextColour" />
@@ -248,7 +249,7 @@
         <StateImagery name="Hover">
             <Layer>
                 <Section section="inactive_frame">
-                    <Colours topLeft="FF303030" topRight="FF303030" bottomLeft="FF303030" bottomRight="FF303030" />
+                    <Colours topLeft="FFFFFFFF" topRight="FFFFFFFF" bottomLeft="FFFFFFFF" bottomRight="FFFFFFFF" />
                 </Section>
                 <Section section="label">
                     <ColourProperty name="HoverTextColour" />
@@ -268,7 +269,7 @@
         <StateImagery name="Disabled">
             <Layer>
                 <Section section="inactive_frame">
-                    <Colours topLeft="FF505050" topRight="FF505050" bottomLeft="FF505050" bottomRight="FF505050" />
+                    <Colours topLeft="FF808080" topRight="FF808080" bottomLeft="FF808080" bottomRight="FF808080" />
                 </Section>
                 <Section section="label">
                     <ColourProperty name="DisabledTextColour" />
@@ -336,9 +337,9 @@
     </WidgetLook>
 
     <WidgetLook name="CGUI/Button">
-        <Property name="NormalTextColour" value="FF7C7C7C" />
-        <Property name="HoverTextColour" value="FFFFFFFF" />
-        <Property name="PushedTextColour" value="FF7C7C7C" />
+        <Property name="NormalTextColour" value="FFD8D0C8" />
+        <Property name="HoverTextColour" value="FFFF8C1A" />
+        <Property name="PushedTextColour" value="FFFF8C1A" />
         <Property name="DisabledTextColour" value="FF383838" />
         <Property name="WantsMultiClickEvents" value="False" />
         <ImagerySection name="label">
@@ -595,11 +596,11 @@
     </WidgetLook>
 
     <WidgetLook name="CGUI/Editbox">
-        <PropertyDefinition name="ReadOnlyBGColour" initialValue="FFDFDFDF" />
-        <Property name="NormalTextColour" value="FF000000" />
-        <Property name="SelectedTextColour" value="FFFFFFFF" />
-        <Property name="ActiveSelectionColour" value="FF607FFF" />
-        <Property name="InactiveSelectionColour" value="FF808080" />
+        <PropertyDefinition name="ReadOnlyBGColour" initialValue="FFB0B0B0" />
+        <Property name="NormalTextColour" value="FFE8E2DC" />
+        <Property name="SelectedTextColour" value="FF140E08" />
+        <Property name="ActiveSelectionColour" value="FFFF8C1A" />
+        <Property name="InactiveSelectionColour" value="FF5A4A3E" />
         <NamedArea name="TextArea">
             <Area>
                 <Dim type="LeftEdge" ><AbsoluteDim value="7" /></Dim>
@@ -630,7 +631,7 @@
                     <Dim type="BottomEdge" ><UnifiedDim scale="1.0" type="BottomEdge" /></Dim>
                 </Area>
                 <Image imageset="CGUI-Images" image="GenericBrush" />
-                <Colours topLeft="FF000000" topRight="FF000000" bottomLeft="FF000000" bottomRight="FF000000" />
+                <Colours topLeft="FFFF8C1A" topRight="FFFF8C1A" bottomLeft="FFFF8C1A" bottomRight="FFFF8C1A" />
                 <VertFormat type="Stretched" />
                 <HorzFormat type="Stretched" />
             </ImageryComponent>
@@ -1351,10 +1352,10 @@
 
     <WidgetLook name="CGUI/MultiLineEditbox">
         <Property name="SelectionBrushImage" value="set:CGUI-Images image:GenericBrush" />
-        <Property name="NormalTextColour" value="FF000000" redrawOnWrite="true" />
-        <Property name="SelectedTextColour" value="FF000000" redrawOnWrite="true" />
-        <Property name="ActiveSelectionColour" value="FF9F9F9F" redrawOnWrite="true" />
-        <Property name="InactiveSelectionColour" value="FF808080" redrawOnWrite="true" />
+        <Property name="NormalTextColour" value="FFE8E2DC" redrawOnWrite="true" />
+        <Property name="SelectedTextColour" value="FF140E08" redrawOnWrite="true" />
+        <Property name="ActiveSelectionColour" value="FFFF8C1A" redrawOnWrite="true" />
+        <Property name="InactiveSelectionColour" value="FF5A4A3E" redrawOnWrite="true" />
         <NamedArea name="TextArea">
             <Area>
                 <Dim type="LeftEdge" ><ImageDim imageset="CGUI-Images" image="FrameLeft" dimension="Width" /></Dim>
@@ -1402,7 +1403,7 @@
                     <Dim type="BottomEdge" ><UnifiedDim scale="1.0" type="BottomEdge" /></Dim>
                 </Area>
                 <Image imageset="CGUI-Images" image="GenericBrush" />
-                <Colours topLeft="FF000000" topRight="FF000000" bottomLeft="FF000000" bottomRight="FF000000" />
+                <Colours topLeft="FFFF8C1A" topRight="FFFF8C1A" bottomLeft="FFFF8C1A" bottomRight="FFFF8C1A" />
                 <VertFormat type="Stretched" />
                 <HorzFormat type="Stretched" />
             </ImageryComponent>
@@ -1923,11 +1924,11 @@
   </WidgetLook>
 
     <WidgetLook name="CGUI/ComboEditbox">
-        <PropertyDefinition name="ReadOnlyBGColour" initialValue="FFDFDFDF" />
-        <Property name="NormalTextColour" value="FF000000" />
-        <Property name="SelectedTextColour" value="FFFFFFFF" />
-        <Property name="ActiveSelectionColour" value="FF607FFF" />
-        <Property name="InactiveSelectionColour" value="FF808080" />
+        <PropertyDefinition name="ReadOnlyBGColour" initialValue="FFB0B0B0" />
+        <Property name="NormalTextColour" value="FFE8E2DC" />
+        <Property name="SelectedTextColour" value="FF140E08" />
+        <Property name="ActiveSelectionColour" value="FFFF8C1A" />
+        <Property name="InactiveSelectionColour" value="FF5A4A3E" />
         <NamedArea name="TextArea">
             <Area>
                 <Dim type="LeftEdge" ><AbsoluteDim value="7" /></Dim>
@@ -1952,7 +1953,7 @@
                 <Image type="TopEdge" imageset="CGUI-Images" image="FrameTop" />
                 <Image type="RightEdge" imageset="CGUI-Images" image="FrameRight" />
                 <Image type="BottomEdge" imageset="CGUI-Images" image="FrameBottom" />
-                <Image type="Background" imageset="CGUI-Images" image="GenericBrush" />
+                <Image type="Background" imageset="CGUI-Images" image="FrameBackground" />
             </FrameComponent>
         </ImagerySection>
         <ImagerySection name="selection">
@@ -1977,7 +1978,7 @@
                     <Dim type="BottomEdge" ><UnifiedDim scale="1.0" type="BottomEdge" /></Dim>
                 </Area>
                 <Image imageset="CGUI-Images" image="GenericBrush" />
-                <Colours topLeft="FF000000" topRight="FF000000" bottomLeft="FF000000" bottomRight="FF000000" />
+                <Colours topLeft="FFFF8C1A" topRight="FFFF8C1A" bottomLeft="FFFF8C1A" bottomRight="FFFF8C1A" />
                 <VertFormat type="Stretched" />
                 <HorzFormat type="Stretched" />
             </ImageryComponent>

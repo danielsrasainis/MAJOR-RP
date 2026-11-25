@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 #include <algorithm>
 #include <vector>
 #include <core/CClientCommands.h>
@@ -888,12 +889,23 @@ void CSettings::CreateGUI()
     m_pButtonGenerateNickIcon->SetProperty("DistributeCapturedInputs", "True");
 
     m_pSavePasswords = reinterpret_cast<CGUICheckBox*>(pManager->CreateCheckBox(pTabMultiplayer, _("Save server passwords"), true));
+#if MAJORRP_LOCK_TO_SERVER
+    // MAJOR RP: single server, no server browser options (hidden, and the gap is closed)
+    m_pSavePasswords->SetPosition(CVector2D(vecTemp.fX, vecTemp.fY + 15.0f));
+    m_pSavePasswords->SetVisible(false);
+#else
     m_pSavePasswords->SetPosition(CVector2D(vecTemp.fX, vecTemp.fY + 35.0f));
+#endif
     m_pSavePasswords->GetPosition(vecTemp, false);
     m_pSavePasswords->AutoSize(NULL, 20.0f);
 
     m_pAutoRefreshBrowser = reinterpret_cast<CGUICheckBox*>(pManager->CreateCheckBox(pTabMultiplayer, _("Auto-refresh server browser"), true));
+#if MAJORRP_LOCK_TO_SERVER
+    m_pAutoRefreshBrowser->SetPosition(CVector2D(vecTemp.fX, vecTemp.fY));
+    m_pAutoRefreshBrowser->SetVisible(false);
+#else
     m_pAutoRefreshBrowser->SetPosition(CVector2D(vecTemp.fX, vecTemp.fY + 20.0f));
+#endif
     m_pAutoRefreshBrowser->GetPosition(vecTemp, false);
     m_pAutoRefreshBrowser->AutoSize(NULL, 20.0f);
 
@@ -3018,6 +3030,11 @@ void CSettings::CreateInterfaceTabGUI()
         m_pInterfaceSkinSelector->SetPosition(CVector2D(vecTemp.fX + fIndentX, vecTemp.fY - 1.0f));
         m_pInterfaceSkinSelector->SetSize(CVector2D(fComboWidth, 200.0f));
         m_pInterfaceSkinSelector->SetReadOnly(true);
+#if MAJORRP_SINGLE_SKIN
+        // MAJOR RP: one skin only, no skin chooser
+        pLabel->SetVisible(false);
+        m_pInterfaceSkinSelector->SetVisible(false);
+#endif
     }
 
     //

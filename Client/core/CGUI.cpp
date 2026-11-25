@@ -25,7 +25,11 @@ CLocalGUI* CSingleton<CLocalGUI>::m_pSingleton = NULL;
 #endif
 #define GET_WHEEL_DELTA_WPARAM(wParam) ((short)HIWORD(wParam))
 
+#if MAJORRP_SINGLE_SKIN
+const char* const DEFAULT_SKIN_NAME = MAJORRP_GUI_SKIN;  // MAJOR RP: the only skin shipped
+#else
 const char* const DEFAULT_SKIN_NAME = "Default 2023";  // TODO: Change to whatever the default skin is if it changes
+#endif
 
 CLocalGUI::CLocalGUI()
 {
@@ -226,6 +230,9 @@ void CLocalGUI::CreateObjects(IUnknown* pDevice)
     SString           currentSkinName;
     CClientVariables* cvars = CCore::GetSingleton().GetCVars();
     cvars->Get("current_skin", currentSkinName);
+#if MAJORRP_SINGLE_SKIN
+    currentSkinName.clear();  // MAJOR RP: always use the MAJOR RP skin
+#endif
     if (currentSkinName.empty())
     {
         currentSkinName = DEFAULT_SKIN_NAME;
