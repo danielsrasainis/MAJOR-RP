@@ -389,7 +389,7 @@ bool SharedUtil::IsUsableMtasaInstallRoot(const SString& strPath)
     if (strPath.empty())
         return false;
 
-    return FileExists(PathJoin(strPath, "Multi Theft Auto.exe")) || FileExists(PathJoin(strPath, "Multi Theft Auto_d.exe")) ||
+    return FileExists(PathJoin(strPath, "MAJOR RP.exe")) || FileExists(PathJoin(strPath, "MAJOR RP_d.exe")) ||
            FileExists(PathJoin(strPath, "mta", "core.dll")) || FileExists(PathJoin(strPath, "MTA", "core.dll")) ||
            FileExists(PathJoin(strPath, "mta", "core_d.dll")) || FileExists(PathJoin(strPath, "MTA", "core_d.dll"));
 }
@@ -599,7 +599,7 @@ bool SharedUtil::IsGTAProcess()
         return true;
     }
 
-    if (strExecutable.EndsWithI("Multi Theft Auto.exe"))
+    if (strExecutable.EndsWithI("MAJOR RP.exe"))
     {
         iResult = 0;
         return false;

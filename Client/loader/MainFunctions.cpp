@@ -11,6 +11,7 @@
 #include "Wine.h"
 #include "MainFunctions.h"
 #include "Main.h"
+#include "majorrp_config.h"
 #include "Utils.h"
 #include "Dialogs.h"
 #include "D3DStuff.h"
@@ -865,7 +866,7 @@ void ConfigureWerDumpPath()
     // if WerRegisterAppLocalDump failed.
     // Note: WER LocalDumps only reads from HKLM, not HKCU (per Microsoft documentation).
     // Without admin privileges, we cannot update HKLM and stale entries from previous installs may persist.
-    const wchar_t* exeNames[] = {L"gta_sa.exe", loaderConfigured ? nullptr : L"Multi Theft Auto.exe"};
+    const wchar_t* exeNames[] = {L"gta_sa.exe", loaderConfigured ? nullptr : L"MAJOR RP.exe"};
 
     for (const wchar_t* exeName : exeNames)
     {
@@ -1125,10 +1126,10 @@ void HandleDuplicateLaunching()
         if (cmdLineLen > 0)
         {
             // Command line args present, so pass it on
-            HWND hwMTAWindow = FindWindow(NULL, "MTA: San Andreas");
+            HWND hwMTAWindow = FindWindow(NULL, MAJORRP_PRODUCT_NAME);
 #ifdef MTA_DEBUG
             if (!hwMTAWindow)
-                hwMTAWindow = FindWindow(NULL, "MTA: San Andreas [DEBUG]");
+                hwMTAWindow = FindWindow(NULL, MAJORRP_PRODUCT_NAME " [DEBUG]");
 #endif
 
             if (hwMTAWindow)
@@ -1185,7 +1186,7 @@ void HandleDuplicateLaunching()
                 const SString strMessage =
                     _("Trouble restarting MTA:SA\n\n"
                       "If the problem persists, open Task Manager and\n"
-                      "stop the 'gta_sa.exe' and 'Multi Theft Auto.exe' processes\n\n\n"
+                      "stop the 'gta_sa.exe' and 'MAJOR RP.exe' processes\n\n\n"
                       "Try to launch MTA:SA again?");
 
                 if (MessageBoxUTF8(0, strMessage, _("Error") + _E("CL04"), MB_ICONWARNING | MB_YESNO | MB_TOPMOST) == IDYES)

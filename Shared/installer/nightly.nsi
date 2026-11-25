@@ -240,7 +240,7 @@ Function LaunchLink
     SetOutPath "$INSTDIR"
     # Problem: 'non-admin nsis' and 'admin nsis' run at the same time and can have different values for $INSTDIR
     # Fix: Copy to temp variable
-    StrCpy $1 "$INSTDIR\Multi Theft Auto.exe"
+    StrCpy $1 "$INSTDIR\MAJOR RP.exe"
     !insertmacro UAC_AsUser_ExecShell "" "$1" "" "" ""
 FunctionEnd
 
@@ -395,11 +395,11 @@ Function .onInstSuccess
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\gta_sa.exe" "DumpType" 1
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\gta_sa.exe" "DumpCount" 10
     WriteRegExpandStr HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\gta_sa.exe" "DumpFolder" "$INSTDIR\MTA\dumps\private"
-    # Configure for Multi Theft Auto.exe (loader process)
+    # Configure for MAJOR RP.exe (loader process)
     ; DumpType: 0=Custom, 1=MiniDump, 2=FullDump - use 1 for smaller dumps
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\Multi Theft Auto.exe" "DumpType" 1
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\Multi Theft Auto.exe" "DumpCount" 10
-    WriteRegExpandStr HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\Multi Theft Auto.exe" "DumpFolder" "$INSTDIR\MTA\dumps\private"
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\MAJOR RP.exe" "DumpType" 1
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\MAJOR RP.exe" "DumpCount" 10
+    WriteRegExpandStr HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\MAJOR RP.exe" "DumpFolder" "$INSTDIR\MTA\dumps\private"
     SetRegView 32
 
 	# Initilize variables holding paths and names
@@ -469,8 +469,8 @@ Function .onInstSuccess
         ; Add the protocol handler
         WriteRegStr HKCR "mtasa" "" "URL:MTA San Andreas Protocol"
         WriteRegStr HKCR "mtasa" "URL Protocol" ""
-        WriteRegStr HKCR "mtasa\DefaultIcon" "" "$INSTDIR\Multi Theft Auto.exe"
-        WriteRegStr HKCR "mtasa\shell\open\command" "" '"$INSTDIR\Multi Theft Auto.exe"%1'
+        WriteRegStr HKCR "mtasa\DefaultIcon" "" "$INSTDIR\MAJOR RP.exe"
+        WriteRegStr HKCR "mtasa\shell\open\command" "" '"$INSTDIR\MAJOR RP.exe"%1'
     ${EndIf}
 
     ;UAC::Unload ;Must call unload!
@@ -837,19 +837,19 @@ SectionGroup /e "$(INST_SEC_CLIENT)" SECGCLIENT
         File /r "${FILES_ROOT}\mta\locale\*.pot"
 
         SetOutPath "$INSTDIR"
-        File "${FILES_ROOT}\Multi Theft Auto.exe"
+        File "${FILES_ROOT}\MAJOR RP.exe"
 
         !ifdef MTA_MAETRO
             File "${FILES_ROOT}\maetro32.dll"
         !endif
 
         # Ensure exe file can be updated without admin
-        AccessControl::GrantOnFile "$INSTDIR\Multi Theft Auto.exe" "($PermissionsGroup)" "FullAccess"
+        AccessControl::GrantOnFile "$INSTDIR\MAJOR RP.exe" "($PermissionsGroup)" "FullAccess"
 
         ${If} $AddToGameExplorer == 1
             ${GameExplorer_UpdateGame} ${GUID}
             ${If} ${Errors}
-                ${GameExplorer_AddGame} all "$INSTDIR\Multi Theft Auto.exe" "$INSTDIR" "$INSTDIR\Multi Theft Auto.exe" ${GUID}
+                ${GameExplorer_AddGame} all "$INSTDIR\MAJOR RP.exe" "$INSTDIR" "$INSTDIR\MAJOR RP.exe" ${GUID}
                 CreateDirectory $APPDATA\Microsoft\Windows\GameExplorer\${GUID}\SupportTasks\0
                 CreateShortcut "$APPDATA\Microsoft\Windows\GameExplorer\$0\SupportTasks\0\Client Manual.lnk" \ "https://wiki.multitheftauto.com/wiki/Client_Manual"
             ${EndIf}
@@ -1072,11 +1072,11 @@ LangString INST_SEC_DEVELOPER ${LANG_ENGLISH}   "Development"
 Section -Post
     ${LogText} "+Section begin - -Post"
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    ;WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\Multi Theft Auto.exe"
+    ;WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\MAJOR RP.exe"
 
     WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
     WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\Uninstall.exe"
-    WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\Multi Theft Auto.exe"
+    WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\MAJOR RP.exe"
     WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
     WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
     WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
@@ -1138,8 +1138,8 @@ Section Uninstall
         Delete "$INSTDIR\server\x64\*.dll"
         RmDir "$INSTDIR\server\x64"
 
-        Delete "$INSTDIR\Multi Theft Auto.exe"
-        Delete "$INSTDIR\Multi Theft Auto.exe.dat"
+        Delete "$INSTDIR\MAJOR RP.exe"
+        Delete "$INSTDIR\MAJOR RP.exe.dat"
         Delete "$INSTDIR\Uninstall.exe"
 
         !ifdef MTA_MAETRO
@@ -1172,7 +1172,7 @@ Section Uninstall
         ${RemoveRegistryGroupWithSingleKey} HKLM "SOFTWARE\MAJOR RP All" "Common"
 
         ReadRegStr $0 HKLM "Software\Classes\mtasa\DefaultIcon" ""
-        ${If} $0 == "$INSTDIR\Multi Theft Auto.exe"
+        ${If} $0 == "$INSTDIR\MAJOR RP.exe"
             DeleteRegKey HKCR "mtasa"
         ${EndIf}
 
@@ -1180,11 +1180,11 @@ Section Uninstall
         DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\gta_sa.exe" "MaxLoaderThreads"
         DeleteRegKey /ifempty HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\gta_sa.exe"
 
-        # Remove WER LocalDumps configuration for gta_sa.exe and Multi Theft Auto.exe
+        # Remove WER LocalDumps configuration for gta_sa.exe and MAJOR RP.exe
         # WER config is in 64-bit registry (not WOW6432Node), so use SetRegView 64
         SetRegView 64
         DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\gta_sa.exe"
-        DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\Multi Theft Auto.exe"
+        DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\MAJOR RP.exe"
         SetRegView 32
 
         ${GameExplorer_RemoveGame} ${GUID}
@@ -1201,14 +1201,14 @@ Section Uninstall
 
         RmDir "$INSTDIR" ; fix for #3898
 
-        DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\Multi Theft Auto.exe.FriendlyAppName"
-        DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\Multi Theft Auto.exe.ApplicationCompany"
+        DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\MAJOR RP.exe.FriendlyAppName"
+        DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\MAJOR RP.exe.ApplicationCompany"
         DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\MTA\wow64_helper.exe.FriendlyAppName"
         DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\MTA\wow64_helper.exe.ApplicationCompany"
         DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\server\MTA Server64.exe.FriendlyAppName"
         DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\server\MTA Server64.exe.ApplicationCompany"
         DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$APPDATA\MAJOR RP All\${0.0}\GTA San Andreas\gta_sa.exe.FriendlyAppName"
-        DeleteRegValue HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store" "$INSTDIR\Multi Theft Auto.exe"
+        DeleteRegValue HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store" "$INSTDIR\MAJOR RP.exe"
         DeleteRegValue HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store" "$INSTDIR\server\MTA Server64.exe"
         DeleteRegValue HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store" "$INSTDIR\Uninstall.exe"
 
@@ -1219,7 +1219,7 @@ Section Uninstall
         EnumRegValue $8 HKCU Software\Microsoft\Windows\CurrentVersion\UFH\SHC $7
         IfErrors done
 
-        ${ReadRegStrMultiSz} ${HKEY_CURRENT_USER} "Software\Microsoft\Windows\CurrentVersion\UFH\SHC" $8 "$INSTDIR\Multi Theft Auto.exe" $9
+        ${ReadRegStrMultiSz} ${HKEY_CURRENT_USER} "Software\Microsoft\Windows\CurrentVersion\UFH\SHC" $8 "$INSTDIR\MAJOR RP.exe" $9
         ${If} $9 != ""
             DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\UFH\SHC" $8
             Goto loop
@@ -1241,7 +1241,7 @@ Section Uninstall
         IntOp $7 $7 + 1
         Goto loop
     done:
-        SimpleFC::RemoveApplication "$INSTDIR\Multi Theft Auto.exe"
+        SimpleFC::RemoveApplication "$INSTDIR\MAJOR RP.exe"
         SimpleFC::RemoveApplication "$INSTDIR\server\MTA Server64.exe"
         SimpleFC::RemoveApplication "$INSTDIR\Uninstall.exe"
         SimpleFC::RemoveApplication "$APPDATA\MAJOR RP All\${0.0}\GTA San Andreas\gta_sa.exe"
@@ -2387,7 +2387,7 @@ Function DoServiceInstall
         GetDLLVersion "$INSTDIR\mta\loader.dll" $R0 $R1
         IntOp $R5 $R1 & 0x0000FFFF ; $R5 now contains build
         ${If} $R5 > 4909
-            Exec '"$INSTDIR\Multi Theft Auto.exe" /nolaunch /kdinstall'
+            Exec '"$INSTDIR\MAJOR RP.exe" /nolaunch /kdinstall'
             StrCpy $ServiceModified 1
         ${EndIf}
     ${EndIf}
@@ -2399,7 +2399,7 @@ Function un.DoServiceUninstall
         GetDLLVersion "$INSTDIR\mta\loader.dll" $R0 $R1
         IntOp $R5 $R1 & 0x0000FFFF ; $R5 now contains build
         ${If} $R5 > 4909
-            Exec '"$INSTDIR\Multi Theft Auto.exe" /nolaunch /kduninstall'
+            Exec '"$INSTDIR\MAJOR RP.exe" /nolaunch /kduninstall'
             StrCpy $ServiceModified 2
         ${EndIf}
     ${EndIf}
@@ -2701,7 +2701,7 @@ Function MTAInitFileNamesAndPaths
 	# Obvious fix is to roll 1 update where all shortcuts will be deleted and replaced with a unified names.
 	StrCpy $DesktopClientShortcutPath "$DESKTOP\$ClientShortcutName ${0.0}.lnk"
 	# Exe names
-	StrCpy $ClientExeName "Multi Theft Auto.exe"
+	StrCpy $ClientExeName "MAJOR RP.exe"
 	StrCpy $ServerExeName "MTA Server64.exe"
 	StrCpy $UninstallExeName "Uninstall.exe"
 	# Exe paths

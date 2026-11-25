@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 #include "StackTraceHelpers.h"
 #include <SharedUtil.Misc.h>
 #include <game/CGame.h>
@@ -387,7 +388,7 @@ static HANDLE                                              ms_hCrashDialogProces
 [[nodiscard]] static std::array<SString, 2> BuildCrashDialogCandidates()
 {
     const SString          basePath = GetMTASABaseDir();
-    std::array<SString, 2> candidates = {SharedUtil::PathJoin(basePath, "Multi Theft Auto.exe"), SharedUtil::PathJoin(basePath, "Multi Theft Auto_d.exe")};
+    std::array<SString, 2> candidates = {SharedUtil::PathJoin(basePath, "MAJOR RP.exe"), SharedUtil::PathJoin(basePath, "MAJOR RP_d.exe")};
 
     return candidates;
 }
@@ -2598,7 +2599,7 @@ void CCrashDumpWriter::DumpMiniDump(_EXCEPTION_POINTERS* pException, CExceptionI
 
     HWND hGTAWindow = FindWindowW(L"Grand theft auto San Andreas", nullptr);
     if (hGTAWindow == nullptr)
-        hGTAWindow = FindWindowW(nullptr, L"MTA: San Andreas");
+        hGTAWindow = FindWindowW(nullptr, L"" MAJORRP_PRODUCT_NAME);
     if (hGTAWindow != nullptr && IsWindow(hGTAWindow))
     {
         ShowWindowAsync(hGTAWindow, SW_MINIMIZE);
