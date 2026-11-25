@@ -7,7 +7,7 @@ jobs:
   windows:
     strategy:
       matrix:
-        platform: [win32, x64, arm64]
+        platform: [win32]  # MAJOR RP: the game client is 32-bit; this also builds the Windows server
     name: windows-${{ matrix.platform }}
     runs-on: windows-2025-vs2026
     steps:
@@ -47,29 +47,13 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: InstallFiles-${{ matrix.platform }}
+          name: MAJORRP-${{ matrix.platform }}
           path: InstallFiles/
-
-  macOS:
-    name: macOS
-    runs-on: macOS-15
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Install MySQL
-        run: brew install mysql
-        continue-on-error: true
-
-      - name: Link MySQL
-        run: brew link --overwrite mysql
-
-      - name: Run Build
-        run: ./linux-build.sh
 
   linux:
     strategy:
       matrix:
-        architecture: [x64, arm64]
+        architecture: [x64]  # MAJOR RP: Linux server for a future VPS
     name: linux-${{ matrix.architecture }}
     runs-on: ubuntu-latest
     container:
