@@ -35,3 +35,8 @@
 // 1 = hide the red "feature-branch build" bar that GitHub-built (CI) clients show at the top of the menu.
 //     The small version label in the bottom-right corner stays.
 #define MAJORRP_HIDE_TEST_BUILD_BANNER 1
+
+// About window
+#define MAJORRP_OWNER_NAME  "Danex"
+#define MAJORRP_DISCORD_URL "discord.gg/majorrp"  // placeholder: put your real invite here
+#define MAJORRP_SOURCE_URL  "github.com/danielsrasainis/MAJOR-RP"

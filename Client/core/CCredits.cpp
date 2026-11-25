@@ -26,9 +26,20 @@ CCredits::CCredits()
     CGUI* pManager = g_pCore->GetGUI();
 
     // Define our credits string
+    // MAJOR RP: About text (edit the values in Shared/sdk/majorrp_config.h)
+    m_strCredits += "== " MAJORRP_PRODUCT_NAME " ==\n\n";
+    m_strCredits += "Founder and community owner: " MAJORRP_OWNER_NAME "\n\n";
+    m_strCredits += MAJORRP_PRODUCT_NAME " has been in development for several years,\n"
+                    "built by and for its roleplay community.\n\n"
+                    "We keep improving the server and client with regular updates:\n"
+                    "new features, new content and fixes,\n"
+                    "so there's always something new to discover.\n\n"
+                    "Thanks for playing, and see you in the city!\n\n";
+    m_strCredits += "Discord: " MAJORRP_DISCORD_URL "\n\n\n";
+    m_strCredits += MAJORRP_PRODUCT_NAME " is based on Multi Theft Auto: San Andreas.\n"
+                    "Thanks to the MTA team and contributors.\n"
+                    "Licensed under GPL-3.0. Source code: " MAJORRP_SOURCE_URL "\n\n";
     m_strCredits += "Grand Theft Auto: San Andreas (TM) (c) 2005 Rockstar Games, Inc.\n\n\n";
-
-    m_strCredits += "== " MAJORRP_PRODUCT_NAME " - based on Multi Theft Auto: San Andreas (GPL-3.0) ==\n\n";
     m_strCredits += "== Multi Theft Auto: San Andreas v" MTA_DM_BUILDTAG_SHORT
                     " ==\n"
                     "\n";
