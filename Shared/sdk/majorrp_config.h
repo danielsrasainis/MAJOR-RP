@@ -52,4 +52,10 @@
 #define MAJORRP_GUI_SKIN    "MAJOR RP"
 
 // Don't show the Discord Rich Presence data-sharing question on the menu
-#define MAJORRP_NO_DISCORD_PROMPT 1
+#define MAJORRP_NO_DISCORD_PROMPT 0
+
+// Discord Rich Presence: Application ID from discord.com/developers and the name of the uploaded art asset.
+// Until MAJOR RP has its own Discord app, the MTA app is used (shows the MTA logo).
+#define MAJORRP_DISCORD_APP_ID     "468493322583801867"
+#define MAJORRP_DISCORD_ASSET      "mta_logo_round"
+#define MAJORRP_DISCORD_ASSET_TEXT "MAJOR RP"

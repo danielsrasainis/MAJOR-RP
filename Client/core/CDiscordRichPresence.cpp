@@ -12,10 +12,13 @@
 #include "StdInc.h"
 #include "discord_rpc.h"
 #include "CDiscordRichPresence.h"
+#include "majorrp_config.h"
 
-constexpr char DEFAULT_APP_ID[] = "468493322583801867";
-constexpr char DEFAULT_APP_ASSET[] = "mta_logo_round";
-constexpr char DEFAULT_APP_ASSET_TEXT[] = "Multi Theft Auto";
+// MAJOR RP: own Discord application (set in majorrp_config.h)
+constexpr char MTA_APP_ID[] = "468493322583801867";
+constexpr char DEFAULT_APP_ID[] = MAJORRP_DISCORD_APP_ID;
+constexpr char DEFAULT_APP_ASSET[] = MAJORRP_DISCORD_ASSET;
+constexpr char DEFAULT_APP_ASSET_TEXT[] = MAJORRP_DISCORD_ASSET_TEXT;
 constexpr char DEFAULT_APP_ASSET_SMALL[] = "";
 constexpr char DEFAULT_APP_ASSET_SMALL_TEXT[] = "";
 
@@ -47,7 +50,7 @@ void CDiscordRichPresence::InitializeDiscord()
 
     Discord_Initialize((m_strDiscordAppCurrentId.empty()) ? DEFAULT_APP_ID : m_strDiscordAppCurrentId.c_str(), &handlers, 1, nullptr);
 
-    m_bDisallowCustomDetails = (m_strDiscordAppCurrentId == DEFAULT_APP_ID) ? true : false;
+    m_bDisallowCustomDetails = (m_strDiscordAppCurrentId == MTA_APP_ID) ? true : false;  // MAJOR RP: only MTA's own app is locked
     m_bConnected = true;
 }
 
