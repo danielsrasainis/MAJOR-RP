@@ -26,6 +26,7 @@
 #define NATIVE_LOGO_Y 540.0f
 
 #define CORE_MTA_MENUITEMS_START_X 0.168
+#define MAJORRP_MENU_CENTER_X      0.5f  // MAJOR RP: menu items centred under the logo
 
 #define CORE_MTA_BG_MAX_ALPHA \
     1.00f  // ACHTUNG: Set to 1 for now due to GTA main menu showing through (no delay inserted between Entering game... and loading screen)
@@ -98,9 +99,8 @@ CMainMenu::CMainMenu(CGUI* pManager)
         m_iXOff = (ScreenSize.fX - m_iMenuSizeX) * 0.5f;
         m_iYOff = 0;
 
-        float iRatioSizeX = ScreenSize.fX / NATIVE_RES_X;
         iBackgroundSizeX = ScreenSize.fX;
-        iBackgroundSizeY = NATIVE_BG_Y * iRatioSizeX;
+        iBackgroundSizeY = ScreenSize.fY;  // MAJOR RP: cover the whole screen (no black bar at the bottom)
     }
     else  // Otherwise our monitor is in a portrait resolution, so we cant fill the background by y
     {
@@ -170,11 +170,12 @@ CMainMenu::CMainMenu(CGUI* pManager)
     m_pVersion->SetPosition(CVector2D(0.855f, 0.512f), true);
     m_pVersion->SetSize(CVector2D((32 / NATIVE_RES_X) * m_iMenuSizeX, (32 / NATIVE_RES_Y) * m_iMenuSizeY), false);
     m_pVersion->SetProperty("InheritsAlpha", "False");
+    m_pVersion->SetVisible(false);  // MAJOR RP: hide the "1.7" badge next to the logo
 
     float fBase = 0.613f;
     float fGap = 0.043f;
     // Our disconnect item is shown/hidden dynamically, so we store it separately
-    m_pDisconnect = CreateItem(MENU_ITEM_DISCONNECT, "menu_disconnect.png", CVector2D(0.168f, fBase + fGap * 0));
+    m_pDisconnect = CreateItem(MENU_ITEM_DISCONNECT, "menu_disconnect.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * 0));
     m_pDisconnect->image->SetVisible(false);
 
     // Create the menu items
@@ -182,11 +183,11 @@ CMainMenu::CMainMenu(CGUI* pManager)
     // And the font for the graphics is ?
     int iMenuItemIndex = 0;
     // MAJOR RP: a single "Connect to Major" button. No server browser, Host Game or Map Editor.
-    m_menuItems.push_back(CreateItem(MENU_ITEM_QUICK_CONNECT, "menu_connect_major.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
+    m_menuItems.push_back(CreateItem(MENU_ITEM_QUICK_CONNECT, "menu_connect_major.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
 
-    m_menuItems.push_back(CreateItem(MENU_ITEM_SETTINGS, "menu_settings.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
-    m_menuItems.push_back(CreateItem(MENU_ITEM_ABOUT, "menu_about.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
-    m_menuItems.push_back(CreateItem(MENU_ITEM_QUIT, "menu_quit.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
+    m_menuItems.push_back(CreateItem(MENU_ITEM_SETTINGS, "menu_settings.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
+    m_menuItems.push_back(CreateItem(MENU_ITEM_ABOUT, "menu_about.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
+    m_menuItems.push_back(CreateItem(MENU_ITEM_QUIT, "menu_quit.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
 
     // We store the position of the top item, and the second item.  These will be useful later
     float fFirstItemSize = m_menuItems.front()->image->GetSize(false).fY;
@@ -196,7 +197,7 @@ CMainMenu::CMainMenu(CGUI* pManager)
     m_iSecondItemCentre = (m_menuItems[1]->image)->GetPosition().fY + fSecondItemSize * 0.5f;
 
     // Store some mouse over bounding box positions
-    m_menuAX = (0.168f * m_iMenuSizeX) + m_iXOff;                                                            // Left side of the items
+    m_menuAX = ((MAJORRP_MENU_CENTER_X - 195 / NATIVE_RES_X) * m_iMenuSizeX) + m_iXOff;                                                           // Left side of the items
     m_menuAY = m_iFirstItemCentre - fFirstItemSize * (CORE_MTA_HOVER_SCALE / CORE_MTA_NORMAL_SCALE) * 0.5f;  // Top side of the items
     m_menuBX = m_menuAX + ((390 / NATIVE_RES_X) * m_iMenuSizeX);  // Right side of the items. We add the longest picture (browse_servers)
     m_menuAY += BODGE_FACTOR_1;
@@ -514,7 +515,8 @@ void CMainMenu::Update()
             sMenuItem* pItem = m_menuItems[(int)floor(fHoveredIndex)];
             int        iSizeX = (pItem->nativeSizeX / NATIVE_RES_X) * m_iMenuSizeX;
 
-            if (cursor.x < (iSizeX + m_menuAX))
+            const int iCenterX = pItem->drawPositionX + m_iXOff;  // MAJOR RP: items are centred
+            if (cursor.x > iCenterX - iSizeX / 2 && cursor.x < iCenterX + iSizeX / 2)
             {
                 if ((m_pHoveredItem) && (m_pHoveredItem != pItem))
                 {
@@ -1103,6 +1105,7 @@ sMenuItem* CMainMenu::CreateItem(unsigned char menuType, const char* szFilename,
     iSizeY = iSizeY * CORE_MTA_NORMAL_SCALE;
     // Grab our draw position from which we enlarge from
     iPosY = iPosY - (iSizeY / 2);
+    iPosX = iPosX - (iSizeX / 2);  // MAJOR RP: vecRelPosition.fX is the item's centre
 
     pImage->SetParent(m_pCanvas);
     pImage->SetPosition(CVector2D(iPosX, iPosY), false);
@@ -1138,8 +1141,8 @@ bool CMainMenu::SetItemHoverProgress(sMenuItem* pItem, float fProgress, bool bHo
     int iSizeX = (pItem->nativeSizeX / NATIVE_RES_X) * m_iMenuSizeX * fTargetScale;
     int iSizeY = (pItem->nativeSizeY / NATIVE_RES_Y) * m_iMenuSizeY * fTargetScale;
 
-    // Aligned to the left horizontally, aligned to the centre vertically
-    int iPosX = pItem->drawPositionX;
+    // MAJOR RP: centred horizontally, aligned to the centre vertically
+    int iPosX = pItem->drawPositionX - (iSizeX / 2);
     int iPosY = (pItem->drawPositionY) - (iSizeY * 0.5);
 
     pItem->image->SetPosition(CVector2D(iPosX, iPosY), false);
@@ -1154,6 +1157,11 @@ void CMainMenu::SetNewsHeadline(int iIndex, const SString& strHeadline, const SS
     if (iIndex < 0 || iIndex > 2)
         return;
 
+#if MAJORRP_HIDE_MENU_NEWS
+    m_pLatestNews->SetVisible(false);  // MAJOR RP: no MTA news on the menu
+    if (m_pLatestNews)
+        return;
+#endif
     m_pLatestNews->SetVisible(true);
 
     // Headline

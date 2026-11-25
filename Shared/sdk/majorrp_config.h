@@ -40,3 +40,6 @@
 #define MAJORRP_OWNER_NAME  "Danex"
 #define MAJORRP_DISCORD_URL "discord.gg/majorrp"  // placeholder: put your real invite here
 #define MAJORRP_SOURCE_URL  "github.com/danielsrasainis/MAJOR-RP"
+
+// 1 = hide MTA's "The Latest News" headlines on the main menu
+#define MAJORRP_HIDE_MENU_NEWS 1
