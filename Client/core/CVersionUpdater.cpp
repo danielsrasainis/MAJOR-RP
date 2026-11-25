@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 #include <game/CSettings.h>
 #include "CVersionUpdater.Util.hpp"
 #include "CNewsBrowser.h"
@@ -426,6 +427,9 @@ bool CVersionUpdater::SaveConfigToXML()
 ///////////////////////////////////////////////////////////////
 void CVersionUpdater::EnableChecking(bool bOn)
 {
+#if MAJORRP_DISABLE_UPDATER
+    bOn = false;  // MAJOR RP: never contact MTA update servers
+#endif
     m_bEnabled = bOn;
     EnsureLoadedConfigFromXML();
 }

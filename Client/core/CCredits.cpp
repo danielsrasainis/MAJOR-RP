@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 
 extern CCore* g_pCore;
 
@@ -27,6 +28,7 @@ CCredits::CCredits()
     // Define our credits string
     m_strCredits += "Grand Theft Auto: San Andreas (TM) (c) 2005 Rockstar Games, Inc.\n\n\n";
 
+    m_strCredits += "== " MAJORRP_PRODUCT_NAME " - based on Multi Theft Auto: San Andreas (GPL-3.0) ==\n\n";
     m_strCredits += "== Multi Theft Auto: San Andreas v" MTA_DM_BUILDTAG_SHORT
                     " ==\n"
                     "\n";
@@ -1095,7 +1097,7 @@ CCredits::CCredits()
 
     // Create our window
     CVector2D RelativeWindow = CVector2D(fWindowX / pManager->GetResolution().fX, fWindowY / pManager->GetResolution().fY);
-    m_pWindow = reinterpret_cast<CGUIWindow*>(pManager->CreateWnd(NULL, "Multi Theft Auto: San Andreas " MTA_DM_BUILDTAG_SHORT));
+    m_pWindow = reinterpret_cast<CGUIWindow*>(pManager->CreateWnd(NULL, MAJORRP_PRODUCT_NAME " " MTA_DM_BUILDTAG_SHORT));
     m_pWindow->SetCloseButtonEnabled(false);
     m_pWindow->SetMovable(false);
     m_pWindow->SetPosition(CVector2D(0.5f - RelativeWindow.fX * 0.5f, 0.5f - RelativeWindow.fY * 0.5f), true);

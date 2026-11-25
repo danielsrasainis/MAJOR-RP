@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 #include <game/CGame.h>
 #include "CNewsBrowser.h"
 #include "CLanguageSelector.h"
@@ -180,15 +181,8 @@ CMainMenu::CMainMenu(CGUI* pManager)
     // Filepath, Relative position, absolute native size
     // And the font for the graphics is ?
     int iMenuItemIndex = 0;
-    m_menuItems.push_back(CreateItem(MENU_ITEM_QUICK_CONNECT, "menu_quick_connect.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
-    m_menuItems.push_back(CreateItem(MENU_ITEM_BROWSE_SERVERS, "menu_browse_servers.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
-
-    // Only add Host Game and Map Editor if server folder exists
-    if (DirectoryExists(CalcMTASAPath("server")))
-    {
-        m_menuItems.push_back(CreateItem(MENU_ITEM_HOST_GAME, "menu_host_game.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
-        m_menuItems.push_back(CreateItem(MENU_ITEM_MAP_EDITOR, "menu_map_editor.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
-    }
+    // MAJOR RP: a single "Connect to Major" button. No server browser, Host Game or Map Editor.
+    m_menuItems.push_back(CreateItem(MENU_ITEM_QUICK_CONNECT, "menu_connect_major.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
 
     m_menuItems.push_back(CreateItem(MENU_ITEM_SETTINGS, "menu_settings.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
     m_menuItems.push_back(CreateItem(MENU_ITEM_ABOUT, "menu_about.png", CVector2D(0.168f, fBase + fGap * iMenuItemIndex++)));
@@ -931,23 +925,15 @@ bool CMainMenu::OnQuickConnectButtonClick(CGUIElement* pElement, bool left)
     if (m_ucFade != FADE_VISIBLE)
         return false;
 
-    if (left)
+    // MAJOR RP: left or right click both connect to the one server
+    (void)left;
+    if (!g_pCore->IsNetworkReady())
     {
-        if (!g_pCore->IsNetworkReady())
-        {
-            ShowNetworkNotReadyWindow();
-            return true;
-        }
-
-        g_pCore->GetConnectManager()->SetQuickConnect(true);
-        g_pCore->GetCommands()->Execute("reconnect", "");
-    }
-    else
-    {
-        m_ServerBrowser.SetVisible(true);
-        m_ServerBrowser.OnQuickConnectButtonClick();
+        ShowNetworkNotReadyWindow();
+        return true;
     }
 
+    g_pCore->GetCommands()->Execute("connect", SString("%s %u", MAJORRP_SERVER_HOST, MAJORRP_SERVER_PORT));
     return true;
 }
 

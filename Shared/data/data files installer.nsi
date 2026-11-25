@@ -83,7 +83,7 @@ Function .onInit
 	Call DoRightsElevation
 
 	; Try to find previously saved MTA:SA install path
-	ReadRegStr $Install_Dir HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}" "Last Install Location"
+	ReadRegStr $Install_Dir HKLM "SOFTWARE\MAJOR RP All\${0.0}" "Last Install Location"
 	${If} $Install_Dir == ""
 		ReadRegStr $Install_Dir HKLM "SOFTWARE\Multi Theft Auto: San Andreas ${0.0}" "Last Install Location"
 	${EndIf}
@@ -97,7 +97,7 @@ Function .onInit
 FunctionEnd
 
 Function .onInstSuccess
-	WriteRegStr HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}" "Last Install Location" $INSTDIR
+	WriteRegStr HKLM "SOFTWARE\MAJOR RP All\${0.0}" "Last Install Location" $INSTDIR
 
 	;UAC::Unload ;Must call unload!
 FunctionEnd
@@ -111,13 +111,13 @@ InstType /NOCUSTOM
 Name "${PRODUCT_NAME_NO_VER} ${PRODUCT_VERSION}"
 OutFile "${INSTALL_OUTPUT}"
 
-InstallDirRegKey HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}" "Last Install Location"
+InstallDirRegKey HKLM "SOFTWARE\MAJOR RP All\${0.0}" "Last Install Location"
 ShowInstDetails show
 
 Section "Data files" SEC01
 	SectionIn 1 RO ; section is required
 
-	WriteRegStr HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}" "Last Install Location" $INSTDIR
+	WriteRegStr HKLM "SOFTWARE\MAJOR RP All\${0.0}" "Last Install Location" $INSTDIR
 
 	SetOverwrite on
 

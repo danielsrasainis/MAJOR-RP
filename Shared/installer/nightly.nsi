@@ -92,10 +92,10 @@ Var UninstallExePath
     !define REVISION_TAG ""
 !endif
 
-!define PRODUCT_NAME "MTA:SA ${0.0}"
-!define PRODUCT_NAME_NO_VER "MTA:SA"
+!define PRODUCT_NAME "MAJOR RP"
+!define PRODUCT_NAME_NO_VER "MAJOR RP"
 
-!define PRODUCT_PUBLISHER "Multi Theft Auto"
+!define PRODUCT_PUBLISHER "MAJOR RP"
 !define PRODUCT_WEB_SITE "https://www.multitheftauto.com"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Multi Theft Auto ${0.0}.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -146,7 +146,7 @@ Page custom CustomDirectoryPage CustomDirectoryPageLeave
 ;Note: Assumes NSIS Unicode edition compiler
 !define MUI_LANGDLL_ALLLANGUAGES
 !define MUI_LANGDLL_REGISTRY_ROOT "HKLM"
-!define MUI_LANGDLL_REGISTRY_KEY "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}"
+!define MUI_LANGDLL_REGISTRY_KEY "SOFTWARE\MAJOR RP All\${0.0}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
 !insertmacro MUI_RESERVEFILE_LANGDLL ;Solid compression optimization for multilang
 
@@ -183,7 +183,7 @@ Page custom CustomDirectoryPage CustomDirectoryPageLeave
     !else
         !define VI_PRODUCT_VERSION "${0.0.0}.0"
     !endif
-    !define VI_PRODUCT_NAME "MTA San Andreas"
+    !define VI_PRODUCT_NAME "MAJOR RP"
     !define VI_COMPANY_NAME "Multi Theft Auto"
     !define /date DATE_YEAR "%Y"
     !define VI_LEGAL_COPYRIGHT "(C) 2003 - ${DATE_YEAR} Multi Theft Auto"
@@ -281,12 +281,12 @@ Function .onInit
 
     SetShellVarContext all
 
-    ${LogSetFileName} "$APPDATA\MTA San Andreas All\Common\Installer" "nsis.log"
+    ${LogSetFileName} "$APPDATA\MAJOR RP All\Common\Installer" "nsis.log"
     ${LogText} "${PRODUCT_VERSION} ${REVISION_TAG}"
     ${LogText} "+Function begin - .onInit"
 
     ; Try to find previously saved MTA:SA install path
-    ReadRegStr $Install_Dir HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}" "Last Install Location"
+    ReadRegStr $Install_Dir HKLM "SOFTWARE\MAJOR RP All\${0.0}" "Last Install Location"
     ${If} $Install_Dir == ""
         ReadRegStr $Install_Dir HKLM "SOFTWARE\Multi Theft Auto: San Andreas ${0.0}" "Last Install Location"
     ${EndIf}
@@ -295,13 +295,13 @@ Function .onInit
     ${EndIf}
 
     ${If} $Install_Dir == ""
-        strcpy $Install_Dir "$PROGRAMFILES\MTA San Andreas ${0.0}"
+        strcpy $Install_Dir "$PROGRAMFILES\MAJOR RP"
     ${EndIf}
     strcpy $INSTDIR $Install_Dir
     ${LogText} "Using install directory:'$INSTDIR'"
 
     ; Setup for install dir dialog
-    strcpy $DEFAULT_INSTDIR "$PROGRAMFILES\MTA San Andreas ${0.0}"
+    strcpy $DEFAULT_INSTDIR "$PROGRAMFILES\MAJOR RP"
     strcpy $LAST_INSTDIR $Install_Dir
     strcpy $CUSTOM_INSTDIR $DEFAULT_INSTDIR
     ${If} $DEFAULT_INSTDIR == $LAST_INSTDIR
@@ -323,7 +323,7 @@ Function .onInit
     ${EndIf}
 
     ; Try to find previously saved GTA:SA install path
-    ReadRegStr $2 HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\Common" "GTA:SA Path"
+    ReadRegStr $2 HKLM "SOFTWARE\MAJOR RP All\Common" "GTA:SA Path"
     ${If} $2 == ""
         ReadRegStr $2 HKCU "SOFTWARE\Multi Theft Auto: San Andreas" "GTA:SA Path"
     ${EndIf}
@@ -379,8 +379,8 @@ Function .onInstSuccess
     ${LogText} "+Function begin - .onInstSuccess"
     SetShellVarContext all
 
-    WriteRegStr HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\Common" "GTA:SA Path" $GTA_DIR
-    WriteRegStr HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}" "Last Install Location" $INSTDIR
+    WriteRegStr HKLM "SOFTWARE\MAJOR RP All\Common" "GTA:SA Path" $GTA_DIR
+    WriteRegStr HKLM "SOFTWARE\MAJOR RP All\${0.0}" "Last Install Location" $INSTDIR
 
     # Add 'MaxLoaderThreads' DWORD value for gta_sa.exe to disable multi-threaded loading of DLLs.
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\gta_sa.exe" "MaxLoaderThreads" 1
@@ -464,7 +464,8 @@ Function .onInstSuccess
 			AccessControl::GrantOnFile $DesktopClientShortcutPath "($PermissionsGroup)" "FullAccess"
     ${EndIf}
 
-    ${If} $RegisterProtocol == 1
+    ; MAJOR RP: do not take over the mtasa:// protocol from stock MTA
+    ${If} 0 == 1
         ; Add the protocol handler
         WriteRegStr HKCR "mtasa" "" "URL:MTA San Andreas Protocol"
         WriteRegStr HKCR "mtasa" "URL Protocol" ""
@@ -487,7 +488,7 @@ Name "${PRODUCT_NAME_NO_VER} ${PRODUCT_VERSION}"
 OutFile "${INSTALL_OUTPUT}"
 
 ;InstallDir "$PROGRAMfiles San Andreas"
-InstallDirRegKey HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}" "Last Install Location"
+InstallDirRegKey HKLM "SOFTWARE\MAJOR RP All\${0.0}" "Last Install Location"
 ShowInstDetails show
 ShowUnInstDetails show
 
@@ -563,12 +564,12 @@ SectionGroup /e "$(INST_SEC_CLIENT)" SECGCLIENT
         ${EndIf}
         #############################################################
 
-        WriteRegStr HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\Common" "GTA:SA Path" $GTA_DIR
-        WriteRegStr HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}" "Last Install Location" $INSTDIR
+        WriteRegStr HKLM "SOFTWARE\MAJOR RP All\Common" "GTA:SA Path" $GTA_DIR
+        WriteRegStr HKLM "SOFTWARE\MAJOR RP All\${0.0}" "Last Install Location" $INSTDIR
 
         # Create fixed path data directories
-        CreateDirectory "$APPDATA\MTA San Andreas All\Common"
-        CreateDirectory "$APPDATA\MTA San Andreas All\${0.0}"
+        CreateDirectory "$APPDATA\MAJOR RP All\Common"
+        CreateDirectory "$APPDATA\MAJOR RP All\${0.0}"
 
         # Ensure install dir exists so the permissions can be set
         SetOutPath "$INSTDIR\MTA"
@@ -580,7 +581,7 @@ SectionGroup /e "$(INST_SEC_CLIENT)" SECGCLIENT
 
         #############################################################
         # Make the directory "$INSTDIR" read write accessible by all users
-        # Make the directory "$APPDATA\MTA San Andreas All" read write accessible by all users
+        # Make the directory "$APPDATA\MAJOR RP All" read write accessible by all users
         # Make the directory "$GTA_DIR" read write accessible by all users
 
         ${If} ${AtLeastWinVista}
@@ -619,8 +620,8 @@ SectionGroup /e "$(INST_SEC_CLIENT)" SECGCLIENT
                 FastPerms::FullAccessPlox "$INSTDIR\server" "($PermissionsGroup)"
                 FastPerms::FullAccessPlox "$INSTDIR\skins" "($PermissionsGroup)"
             ${EndIf}
-            ${LogText} "FullAccess $APPDATA\MTA San Andreas All"
-            FastPerms::FullAccessPlox "$APPDATA\MTA San Andreas All" "($PermissionsGroup)"
+            ${LogText} "FullAccess $APPDATA\MAJOR RP All"
+            FastPerms::FullAccessPlox "$APPDATA\MAJOR RP All" "($PermissionsGroup)"
 
             # Remove MTA virtual store
             StrCpy $0 $INSTDIR
@@ -662,7 +663,7 @@ SectionGroup /e "$(INST_SEC_CLIENT)" SECGCLIENT
         SetOverwrite on
 
         # Make some keys in HKLM read write accessible by all users
-        AccessControl::GrantOnRegKey HKLM "SOFTWARE\Multi Theft Auto: San Andreas All" "($PermissionsGroup)" "FullAccess"
+        AccessControl::GrantOnRegKey HKLM "SOFTWARE\MAJOR RP All" "($PermissionsGroup)" "FullAccess"
 
         SetOutPath "$INSTDIR\MTA"
         File "${FILES_ROOT}\mta\cgui.dll"
@@ -743,7 +744,7 @@ SectionGroup /e "$(INST_SEC_CLIENT)" SECGCLIENT
 
         ${If} "$(LANGUAGE_CODE)" != ""
             # Write our language to registry
-            WriteRegStr HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}\Settings\general" "locale" "$(LANGUAGE_CODE)"
+            WriteRegStr HKLM "SOFTWARE\MAJOR RP All\${0.0}\Settings\general" "locale" "$(LANGUAGE_CODE)"
         ${EndIf}
 
         !ifndef LIGHTBUILD
@@ -1158,17 +1159,17 @@ Section Uninstall
         Delete "$INSTDIR\MTA\*.dat"
         Delete "$INSTDIR\MTA\*.bin"
 
-        RmDir /r "$APPDATA\MTA San Andreas All\${0.0}"
-        ; Delete "$APPDATA\MTA San Andreas All" if "Common" is the only directory in it.
-        ${RmDirWithSingleChildDir} "$APPDATA\MTA San Andreas All" "Common"
+        RmDir /r "$APPDATA\MAJOR RP All\${0.0}"
+        ; Delete "$APPDATA\MAJOR RP All" if "Common" is the only directory in it.
+        ${RmDirWithSingleChildDir} "$APPDATA\MAJOR RP All" "Common"
 
         DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
         DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
         DeleteRegKey HKLM "SOFTWARE\Multi Theft Auto: San Andreas ${0.0}"
         DeleteRegKey HKCU "SOFTWARE\Multi Theft Auto: San Andreas ${0.0}"
-        DeleteRegKey HKLM "SOFTWARE\Multi Theft Auto: San Andreas All\${0.0}"
-        ; Delete "SOFTWARE\Multi Theft Auto: San Andreas All" if "Common" is the only one left.
-        ${RemoveRegistryGroupWithSingleKey} HKLM "SOFTWARE\Multi Theft Auto: San Andreas All" "Common"
+        DeleteRegKey HKLM "SOFTWARE\MAJOR RP All\${0.0}"
+        ; Delete "SOFTWARE\MAJOR RP All" if "Common" is the only one left.
+        ${RemoveRegistryGroupWithSingleKey} HKLM "SOFTWARE\MAJOR RP All" "Common"
 
         ReadRegStr $0 HKLM "Software\Classes\mtasa\DefaultIcon" ""
         ${If} $0 == "$INSTDIR\Multi Theft Auto.exe"
@@ -1206,7 +1207,7 @@ Section Uninstall
         DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\MTA\wow64_helper.exe.ApplicationCompany"
         DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\server\MTA Server64.exe.FriendlyAppName"
         DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$INSTDIR\server\MTA Server64.exe.ApplicationCompany"
-        DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$APPDATA\MTA San Andreas All\${0.0}\GTA San Andreas\gta_sa.exe.FriendlyAppName"
+        DeleteRegValue HKCR "Local Settings\Software\Microsoft\Windows\Shell\MuiCache" "$APPDATA\MAJOR RP All\${0.0}\GTA San Andreas\gta_sa.exe.FriendlyAppName"
         DeleteRegValue HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store" "$INSTDIR\Multi Theft Auto.exe"
         DeleteRegValue HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store" "$INSTDIR\server\MTA Server64.exe"
         DeleteRegValue HKCU "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Compatibility Assistant\Store" "$INSTDIR\Uninstall.exe"
@@ -1243,7 +1244,7 @@ Section Uninstall
         SimpleFC::RemoveApplication "$INSTDIR\Multi Theft Auto.exe"
         SimpleFC::RemoveApplication "$INSTDIR\server\MTA Server64.exe"
         SimpleFC::RemoveApplication "$INSTDIR\Uninstall.exe"
-        SimpleFC::RemoveApplication "$APPDATA\MTA San Andreas All\${0.0}\GTA San Andreas\gta_sa.exe"
+        SimpleFC::RemoveApplication "$APPDATA\MAJOR RP All\${0.0}\GTA San Andreas\gta_sa.exe"
 
         SetAutoClose true
 SectionEnd
@@ -1762,8 +1763,8 @@ Function RemoveVirtualStore
         ${LogText} "No VirtualStore detected at $3"
     ${EndIf}
 
-    ; Also remove VirtualStore\ProgramData\MTA San Andreas All
-    StrCpy $3 "$LOCALAPPDATA\VirtualStore\ProgramData\MTA San Andreas All"
+    ; Also remove VirtualStore\ProgramData\MAJOR RP All
+    StrCpy $3 "$LOCALAPPDATA\VirtualStore\ProgramData\MAJOR RP All"
     ${If} ${FileExists} $3
         ${LogText} "Removing $3"
         RmDir /r "$3"
@@ -2167,7 +2168,7 @@ Function CustomDirectoryPageDirRequestChange
 FunctionEnd
 
 Function CustomDirectoryPageSetDefaultButtonClick
-    StrCpy $INSTDIR "$PROGRAMFILES\MTA San Andreas ${0.0}"
+    StrCpy $INSTDIR "$PROGRAMFILES\MAJOR RP"
     ${NSD_SetText} $DirRequest $INSTDIR
     Call CustomDirectoryPageSetUpgradeMessage
 FunctionEnd
@@ -2582,7 +2583,7 @@ FunctionEnd
 ; Out $NetMsgURL = URL
 Function NetComposeURL
     ${If} $NetMsgURL == ""
-        IfFileExists "$APPDATA\MTA San Andreas All" 0 skip
+        IfFileExists "$APPDATA\MAJOR RP All" 0 skip
             StrCpy $NetPrevInfo "$NetPrevInfo&pp=1"
         skip:
         StrCpy $NetPrevInfo "$NetPrevInfo&ver=${0.0.0}"

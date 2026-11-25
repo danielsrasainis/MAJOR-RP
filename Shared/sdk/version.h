@@ -45,10 +45,11 @@
 #define MTASA_VERSION_MAJOR       1
 #define MTASA_VERSION_MINOR       7
 #define MTASA_VERSION_MAINTENANCE 0
-#define MTASA_VERSION_TYPE        VERSION_TYPE_CUSTOM
+#define MTASA_VERSION_TYPE        VERSION_TYPE_UNSTABLE  // MAJOR RP: required for fork builds, see note above
 #define MTASA_VERSION_BUILD       0
 
 #include "../build_overrides.h"
+#include "majorrp_config.h"
 
 // Old version info
 #define MTA_DM_VERSION (((MTASA_VERSION_MAJOR) << 8) | ((MTASA_VERSION_MINOR) << 4) | ((MTASA_VERSION_MAINTENANCE) << 0))
@@ -59,9 +60,9 @@
 #endif
 
 #ifdef MTA_CLIENT
-    #define MTA_DM_FULL_STRING "MTA:SA Client"
+    #define MTA_DM_FULL_STRING MAJORRP_PRODUCT_NAME " Client"
 #else
-    #define MTA_DM_FULL_STRING "MTA:SA Server"
+    #define MTA_DM_FULL_STRING MAJORRP_PRODUCT_NAME " Server"
 #endif
 
 // MTA_MAETRO is defined in premake5.lua

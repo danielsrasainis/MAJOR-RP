@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 #include "net/Packets.h"
 using namespace std;
 
@@ -57,6 +58,16 @@ bool CConnectManager::Connect(const char* szHost, unsigned short usPort, const c
         CCore::GetSingleton().GetLocalGUI()->GetMainMenu()->ShowNetworkNotReadyWindow();
         return false;
     }
+
+#if MAJORRP_LOCK_TO_SERVER
+    // MAJOR RP: this client only connects to the MAJOR RP server
+    if (stricmp(szHost, MAJORRP_SERVER_HOST) != 0 || usPort != MAJORRP_SERVER_PORT)
+    {
+        CCore::GetSingleton().GetConsole()->Printf("This client can only connect to %s (%s:%u)", MAJORRP_PRODUCT_NAME, MAJORRP_SERVER_HOST,
+                                                   MAJORRP_SERVER_PORT);
+        return false;
+    }
+#endif
 
     m_bNotifyServerBrowser = bNotifyServerBrowser;
 

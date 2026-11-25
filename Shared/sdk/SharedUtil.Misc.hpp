@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "SharedUtil.Misc.h"
+#include "majorrp_config.h"
 #include "SharedUtil.Time.h"
 #include <cstdint>
 #include <algorithm>
@@ -309,8 +310,8 @@ CDuplicateLineFilter<SReportLine> ms_ReportLineFilter;
 
 #ifdef MTA_CLIENT
 
-    #define PRODUCT_REGISTRY_PATH   "Software\\Multi Theft Auto: San Andreas All"  // HKLM
-    #define PRODUCT_COMMON_DATA_DIR "MTA San Andreas All"                          // C:\ProgramData
+    #define PRODUCT_REGISTRY_PATH   MAJORRP_REGISTRY_PATH    // HKLM (MAJOR RP: was "Software\\Multi Theft Auto: San Andreas All")
+    #define PRODUCT_COMMON_DATA_DIR MAJORRP_COMMON_DATA_DIR  // C:\ProgramData (MAJOR RP: was "MTA San Andreas All")
     #define TROUBLE_URL1            "https://help.multitheftauto.com/sa/trouble/?v=_VERSION_&id=_ID_&tr=_TROUBLE_"
 
     //
