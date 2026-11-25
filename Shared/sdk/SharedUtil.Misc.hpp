@@ -509,6 +509,18 @@ SString SharedUtil::GetMTASABaseDir()
         }
         if (strInstallRoot.empty())
         {
+            // MAJOR RP: portable mode. If the running exe sits in a valid install folder (e.g. an
+            // unzipped build in C:\MAJOR RP), use that folder. Without an installer nothing grants
+            // write access to the HKLM key, so "Last Run Location" may never get written.
+            const SString strLaunchDir = GetLaunchPath();
+            if (SharedUtil::IsUsableMtasaInstallRoot(strLaunchDir) && !SharedUtil::IsTemporaryUpdateLaunchPath(strLaunchDir))
+            {
+                strInstallRoot = strLaunchDir;
+                strInstallRootSource = "launch path (portable)";
+            }
+        }
+        if (strInstallRoot.empty())
+        {
             // Read each registry view independently and apply install-root validation per view, so a
             // stale or temp-path value in one view cannot shadow a usable real install root in
             // another. Order: 64-bit view, 32-bit view, default view.
