@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 #include "CServerImpl.h"
 #include "CCrashHandler.h"
 #include "MTAPlatform.h"
@@ -329,7 +330,12 @@ int CServerImpl::Run(int iArgumentCount, char* szArguments[])
 
     // Welcome text
     if (!g_bSilent)
-        Print("MTA:BLUE Server for MTA:SA\n\n");
+    {
+        Print(MAJORRP_PRODUCT_NAME " Server (based on MTA:SA)\n\n");
+#ifdef WIN32
+        SetConsoleTitleA(MAJORRP_PRODUCT_NAME " Server");
+#endif
+    }
 
     // Load the network DLL
     if (m_NetworkLibrary.Load(PathJoin(m_strServerPath, SERVER_BIN_PATH, szNetworkLibName)))
