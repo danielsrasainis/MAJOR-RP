@@ -89,6 +89,8 @@ CMainMenu::CMainMenu(CGUI* pManager)
     int iBackgroundY = 0;
     int iBackgroundSizeX = ScreenSize.fX;
     int iBackgroundSizeY;
+    int iBgImageX = 0;  // MAJOR RP: background image position (may be negative when cropped)
+    int iBgImageY = 0;
 
     // First let's work out our x and y offsets
     if (ScreenSize.fX > ScreenSize.fY)  // If the monitor is a normal landscape one
@@ -99,8 +101,20 @@ CMainMenu::CMainMenu(CGUI* pManager)
         m_iXOff = (ScreenSize.fX - m_iMenuSizeX) * 0.5f;
         m_iYOff = 0;
 
-        iBackgroundSizeX = ScreenSize.fX;
-        iBackgroundSizeY = ScreenSize.fY;  // MAJOR RP: cover the whole screen (no black bar at the bottom)
+        // MAJOR RP: the 16:9 background covers the whole screen at any resolution (cropped, never stretched)
+        const float fImageAspect = 1920.0f / 1080.0f;
+        if (ScreenSize.fX / ScreenSize.fY > fImageAspect)
+        {
+            iBackgroundSizeX = ScreenSize.fX;
+            iBackgroundSizeY = ScreenSize.fX / fImageAspect;
+            iBgImageY = (ScreenSize.fY - iBackgroundSizeY) / 2;
+        }
+        else
+        {
+            iBackgroundSizeY = ScreenSize.fY;
+            iBackgroundSizeX = ScreenSize.fY * fImageAspect;
+            iBgImageX = (ScreenSize.fX - iBackgroundSizeX) / 2;
+        }
     }
     else  // Otherwise our monitor is in a portrait resolution, so we cant fill the background by y
     {
@@ -111,6 +125,7 @@ CMainMenu::CMainMenu(CGUI* pManager)
         m_iYOff = (ScreenSize.fY - m_iMenuSizeY) * 0.5f;
 
         iBackgroundY = m_iYOff;
+        iBgImageY = m_iYOff;
         iBackgroundSizeX = m_iMenuSizeX;
         iBackgroundSizeY = NATIVE_BG_Y * iRatioSizeX;
     }
@@ -128,7 +143,7 @@ CMainMenu::CMainMenu(CGUI* pManager)
     m_pBackground = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage());
     m_pBackground->LoadFromFile(CORE_MTA_STATIC_BG);
     m_pBackground->SetProperty("InheritsAlpha", "False");
-    m_pBackground->SetPosition(CVector2D(iBackgroundX, iBackgroundY), false);
+    m_pBackground->SetPosition(CVector2D(iBackgroundX + iBgImageX, iBgImageY), false);
     m_pBackground->SetSize(CVector2D(iBackgroundSizeX, iBackgroundSizeY), false);
     m_pBackground->SetZOrderingEnabled(false);
     m_pBackground->SetAlwaysOnTop(true);
