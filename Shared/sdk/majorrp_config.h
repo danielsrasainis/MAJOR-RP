@@ -43,3 +43,6 @@
 
 // 1 = hide MTA's "The Latest News" headlines on the main menu
 #define MAJORRP_HIDE_MENU_NEWS 1
+
+// English only: no language button on the menu, Settings shows only English, locale forced to en_US
+#define MAJORRP_ENGLISH_ONLY 1

@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 #include "CLanguageSelector.h"
 
 #define LANGUAGE_ICON_SIZE_X      20
@@ -235,6 +236,14 @@ void CLanguageSelector::DoPulse()
 {
     if (!m_pButtonWindow)
         return;
+
+#if MAJORRP_ENGLISH_ONLY
+    // MAJOR RP: English only, never show the language button
+    SetLanguageListVisible(false);
+    m_pButtonWindow->SetVisible(false);
+    if (m_pButtonWindow)
+        return;
+#endif
 
     if (CLocalGUI::GetSingleton().GetMainMenu()->GetIsIngame())
     {

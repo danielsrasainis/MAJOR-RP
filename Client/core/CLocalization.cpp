@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 #include "StdInc.h"
+#include "majorrp_config.h"
 #include "../../vendor/tinygettext/log.hpp"
 #define MTA_LOCALE_TEXTDOMAIN "client"
 // TRANSLATORS: Replace with your language native name
@@ -49,6 +50,9 @@ CLocalization::~CLocalization()
 //
 SString CLocalization::ValidateLocale(SString strLocale)
 {
+#if MAJORRP_ENGLISH_ONLY
+    strLocale = "en_US";  // MAJOR RP: English only
+#endif
     if (strLocale.empty() && (CClientVariables::GetSingletonPtr() == nullptr || !CVARS_GET("locale", strLocale)))
         strLocale = "en_US";
 
@@ -204,6 +208,10 @@ SString CLocalization::GetTranslators()
 std::vector<SString> CLocalization::GetAvailableLocales()
 {
     std::vector<SString> localeList = {"en_US"};
+#if MAJORRP_ENGLISH_ONLY
+    if (!localeList.empty())
+        return localeList;  // MAJOR RP: English only
+#endif
     for (const auto& language : m_DictManager.get_languages(MTA_LOCALE_TEXTDOMAIN))
         // To avoid duplicates
         if (std::find(localeList.begin(), localeList.end(), language.str()) == localeList.end())
