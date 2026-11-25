@@ -67,6 +67,11 @@ jobs:
       - name: Add the 64-bit Windows server to the client folder
         run: |
           cp -rn x64/server/. MAJORRP/server/
+          # MAJOR RP: never overwrite a server's own settings when updating. Ship default configs
+          # as *.default; on a brand-new install, rename them (drop ".default").
+          for f in MAJORRP/server/mods/deathmatch/*.conf MAJORRP/server/mods/deathmatch/*.xml; do
+            [ -e "$f" ] && mv "$f" "$f.default"
+          done
           ls -la MAJORRP/server MAJORRP/server/x64 || true
       - uses: actions/upload-artifact@v6
         with:

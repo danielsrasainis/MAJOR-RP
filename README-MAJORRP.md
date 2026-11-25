@@ -54,3 +54,10 @@ Server and client must be built from the same commit, otherwise the network vers
 - Artwork is a placeholder (logo, background, button). Replace the PNGs in `Shared/data/MTA San Andreas/MTA/cgui/images/` and `.../locale/en_US/menu_connect_major.png` (white text, 34 px high, max 390 px wide).
 - The anti-cheat for forks is weak. Plan your own server-side checks.
 - Not compiled yet: these changes were written against mtasa-blue commit 55e4f6d without a Windows build.
+
+## Updating an existing server
+
+The download ships the server settings as `*.default` files in `server\mods\deathmatch\`
+(`mtaserver.conf.default`, `acl.xml.default`, ...). Copying the zip over an existing server never
+overwrites your own `mtaserver.conf`, `acl.xml` or other settings.
+On a brand-new server, rename those files once to drop `.default`.
