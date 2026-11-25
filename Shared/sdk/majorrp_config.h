@@ -50,3 +50,6 @@
 // One GUI skin only (Shared/data/MTA San Andreas/skins/MAJOR RP); the skin chooser is hidden
 #define MAJORRP_SINGLE_SKIN 1
 #define MAJORRP_GUI_SKIN    "MAJOR RP"
+
+// Don't show the Discord Rich Presence data-sharing question on the menu
+#define MAJORRP_NO_DISCORD_PROMPT 1

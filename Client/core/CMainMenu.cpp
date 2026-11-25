@@ -692,8 +692,12 @@ void CMainMenu::Update()
             m_pNewsBrowser->CreateHeadlines();
             GetVersionUpdater()->EnableChecking(true);
 
+#if MAJORRP_NO_DISCORD_PROMPT
+            if (false)  // MAJOR RP: never ask the Discord Rich Presence data-sharing question
+#else
             if (!g_pCore->GetCVars()->GetValue("discord_rpc_share_data_firsttime", false) && g_pCore->GetCVars()->GetValue("allow_discord_rpc", false) &&
                 !g_pCore->GetCVars()->GetValue("discord_rpc_share_data", false))
+#endif
             {
                 m_Settings.ShowRichPresenceShareDataQuestionBox();
                 CVARS_SET("discord_rpc_share_data_firsttime", true);
