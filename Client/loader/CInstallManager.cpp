@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "CInstallManager.h"
+#include "majorrp_config.h"
 #include "Utils.h"
 #include "Main.h"
 #include "Dialogs.h"
@@ -1514,6 +1515,99 @@ bool CInstallManager::UpdateOptimusSymbolExport()
 
 //////////////////////////////////////////////////////////
 //
+// MAJOR RP: portable first-run setup
+//
+// An unzipped build has no installer, so nothing creates the ProgramData folders,
+// the HKLM registry key, or grants normal users write access to them.
+// Do it here once (as admin), the same way the installer does.
+//
+//////////////////////////////////////////////////////////
+#include <aclapi.h>
+#pragma comment(lib, "advapi32.lib")
+
+static bool MajorRpGrantUsersFullAccess(HANDLE hObject, SE_OBJECT_TYPE objectType, DWORD dwAccess)
+{
+    BYTE  sidBuffer[SECURITY_MAX_SID_SIZE];
+    DWORD cbSid = sizeof(sidBuffer);
+    if (!CreateWellKnownSid(WinBuiltinUsersSid, nullptr, sidBuffer, &cbSid))
+        return false;
+
+    PACL                 pOldDacl = nullptr;
+    PSECURITY_DESCRIPTOR pSD = nullptr;
+    if (GetSecurityInfo(hObject, objectType, DACL_SECURITY_INFORMATION, nullptr, nullptr, &pOldDacl, nullptr, &pSD) != ERROR_SUCCESS)
+        return false;
+
+    EXPLICIT_ACCESSW access = {};
+    access.grfAccessPermissions = dwAccess;
+    access.grfAccessMode = GRANT_ACCESS;
+    access.grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+    access.Trustee.TrusteeForm = TRUSTEE_IS_SID;
+    access.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+    access.Trustee.ptstrName = reinterpret_cast<LPWSTR>(sidBuffer);
+
+    PACL  pNewDacl = nullptr;
+    DWORD dwResult = SetEntriesInAclW(1, &access, pOldDacl, &pNewDacl);
+    if (dwResult == ERROR_SUCCESS)
+        dwResult = SetSecurityInfo(hObject, objectType, DACL_SECURITY_INFORMATION, nullptr, nullptr, pNewDacl, nullptr);
+
+    if (pNewDacl)
+        LocalFree(pNewDacl);
+    if (pSD)
+        LocalFree(pSD);
+    return dwResult == ERROR_SUCCESS;
+}
+
+static void MajorRpGrantDirectory(const SString& strDir)
+{
+    HANDLE hDir = CreateFileW(FromUTF8(strDir), READ_CONTROL | WRITE_DAC, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+                              OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+    if (hDir == INVALID_HANDLE_VALUE)
+        return;
+    MajorRpGrantUsersFullAccess(hDir, SE_FILE_OBJECT, FILE_ALL_ACCESS);
+    CloseHandle(hDir);
+}
+
+static void MajorRpGrantRegistryKey()
+{
+    const REGSAM views[] = {KEY_WOW64_32KEY, KEY_WOW64_64KEY};
+    for (REGSAM view : views)
+    {
+        HKEY hKey = nullptr;
+        if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, FromUTF8(GetProductRegistryPath()), 0, nullptr, REG_OPTION_NON_VOLATILE, READ_CONTROL | WRITE_DAC | view,
+                            nullptr, &hKey, nullptr) == ERROR_SUCCESS)
+        {
+            MajorRpGrantUsersFullAccess(reinterpret_cast<HANDLE>(hKey), SE_REGISTRY_KEY, KEY_ALL_ACCESS);
+            RegCloseKey(hKey);
+        }
+    }
+}
+
+static bool MajorRpIsDirWritable(const SString& strDir)
+{
+    if (!DirectoryExists(strDir))
+        return false;
+    SString strTestFilePath = PathJoin(strDir, "majorrp_writetest.txt");
+    SString strContent = "test";
+    bool    bOk = FileSave(strTestFilePath, strContent);
+    FileDelete(strTestFilePath);
+    return bOk;
+}
+
+static bool MajorRpIsLayoutReady()
+{
+    if (!MajorRpIsDirWritable(GetMTADataPath()) || !MajorRpIsDirWritable(GetMTADataPathCommon()))
+        return false;
+    if (GetRegistryValue("", "Last Install Location").empty())
+        return false;
+    SString strValue = GetTimeString(true, true);
+    SetRegistryValue("majorrp_testkey", "testname", strValue);
+    bool bOk = GetRegistryValue("majorrp_testkey", "testname") == strValue;
+    RemoveRegistryKey("majorrp_testkey");
+    return bOk;
+}
+
+//////////////////////////////////////////////////////////
+//
 // CInstallManager::_ProcessLayoutChecks
 //
 // Make sure new reg/dir structure is ok
@@ -1521,6 +1615,26 @@ bool CInstallManager::UpdateOptimusSymbolExport()
 //////////////////////////////////////////////////////////
 SString CInstallManager::_ProcessLayoutChecks()
 {
+#if MAJORRP_PORTABLE_SETUP
+    // MAJOR RP: first-run setup for an unzipped build (no installer)
+    if (!MajorRpIsLayoutReady())
+    {
+        if (!IsUserAdmin())
+        {
+            m_strAdminReason = _("First-time setup of " MAJORRP_PRODUCT_NAME);
+            return "fail";  // Sequencer calls ChangeToAdmin and runs this again as admin
+        }
+
+        const SString strDataRoot = PathJoin(GetSystemCommonAppDataPath(), GetProductCommonDataDir());
+        MakeSureDirExists(GetMTADataPath() + "/");
+        MakeSureDirExists(GetMTADataPathCommon() + "/");
+        MajorRpGrantDirectory(strDataRoot);
+        MajorRpGrantRegistryKey();
+        if (GetRegistryValue("", "Last Install Location").empty())
+            SetRegistryValue("", "Last Install Location", GetMTASAPath());
+    }
+#endif
+
     //
     // Validation
     //

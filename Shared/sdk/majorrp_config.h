@@ -23,3 +23,7 @@
 // Registry key (HKLM) and C:\ProgramData folder, kept apart from stock MTA so both can be installed
 #define MAJORRP_REGISTRY_PATH   "Software\\MAJOR RP All"
 #define MAJORRP_COMMON_DATA_DIR "MAJOR RP All"
+
+// 1 = an unzipped build sets itself up on first run (asks for admin once):
+//     creates ProgramData folders and the registry key and lets normal users write to them
+#define MAJORRP_PORTABLE_SETUP 1
