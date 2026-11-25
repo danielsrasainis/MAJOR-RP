@@ -31,3 +31,7 @@
 // 1 = don't ask for admin on every start when MTA's closed anti-cheat service check fails.
 //     That check never passes for this fork, so the prompts only repeated without fixing anything.
 #define MAJORRP_NO_SERVICE_ADMIN_PROMPT 1
+
+// 1 = hide the red "feature-branch build" bar that GitHub-built (CI) clients show at the top of the menu.
+//     The small version label in the bottom-right corner stays.
+#define MAJORRP_HIDE_TEST_BUILD_BANNER 1
