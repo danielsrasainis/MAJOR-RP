@@ -5802,6 +5802,7 @@ static void ShowRichPresenceShareDataCallback(void* ptr, unsigned int uiButton)
     CCore::GetSingleton().GetLocalGUI()->GetMainMenu()->GetQuestionWindow()->Reset();
 
     CVARS_SET("discord_rpc_share_data", static_cast<bool>(uiButton));
+    CCore::GetSingleton().SaveConfig();  // MAJOR RP: save the answer right away
 }
 
 void CSettings::ShowRichPresenceShareDataQuestionBox() const

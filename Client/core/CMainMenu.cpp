@@ -701,6 +701,7 @@ void CMainMenu::Update()
             {
                 m_Settings.ShowRichPresenceShareDataQuestionBox();
                 CVARS_SET("discord_rpc_share_data_firsttime", true);
+                CCore::GetSingleton().SaveConfig();  // MAJOR RP: remember right away, so it is not asked again after a crash or forced close
             }
             else
                 CVARS_SET("discord_rpc_share_data_firsttime", true);
