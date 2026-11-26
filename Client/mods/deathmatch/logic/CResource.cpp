@@ -84,6 +84,12 @@ CResource::CResource(unsigned short usNetID, const char* szResourceName, CClient
     if (!m_strResourcePrivateDirectoryPathOld.empty())
         m_strResourcePrivateDirectoryPathOld = PathJoin(m_strResourcePrivateDirectoryPathOld, m_strResourceName);
 
+    // MAJOR RP: on our server the "previous version" private folder is the same folder as the current one.
+    // The move-old-files code below then saw every saved file as an old copy and DELETED it on the next
+    // access (so @rememberme.xml, @updates_read.xml, ... never survived). Only migrate from a different folder.
+    if (PathConform(m_strResourcePrivateDirectoryPathOld).CompareI(PathConform(m_strResourcePrivateDirectoryPath)))
+        m_strResourcePrivateDirectoryPathOld.clear();
+
     // Move this after the CreateVirtualMachine line and heads will roll
     m_bOOPEnabled = bEnableOOP;
     m_iDownloadPriorityGroup = 0;
