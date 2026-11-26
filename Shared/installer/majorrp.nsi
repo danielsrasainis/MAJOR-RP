@@ -149,8 +149,15 @@ Section "MAJOR RP (required)" SecCore
 SectionEnd
 
 Section "Desktop shortcut" SecDesktop
-    SetShellVarContext all
+    ; On the installing user's own desktop (also when it is moved to OneDrive). The all-users
+    ; desktop (C:\Users\Public\Desktop) didn't show the shortcut on some PCs.
+    SetShellVarContext current
     CreateShortcut "$DESKTOP\MAJOR RP.lnk" "$INSTDIR\${CLIENT_EXE}" "" "$INSTDIR\${CLIENT_EXE}" 0
+    ${IfNot} ${FileExists} "$DESKTOP\MAJOR RP.lnk"
+        DetailPrint "Could not create the desktop shortcut in $DESKTOP"
+    ${EndIf}
+    ; Tell Explorer to redraw the desktop so the new icon appears right away
+    System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
 SectionEnd
 
 Section "Start menu shortcuts" SecStartMenu
@@ -169,6 +176,9 @@ Section /o "DirectX 9 runtime (only if the game will not start)" SecDirectX
 SectionEnd
 
 Section "Uninstall"
+    ; Shortcuts may be in the current user's or the all-users folders (first build used all-users)
+    SetShellVarContext current
+    Delete "$DESKTOP\MAJOR RP.lnk"
     SetShellVarContext all
     Delete "$DESKTOP\MAJOR RP.lnk"
     RMDir /r "$SMPROGRAMS\MAJOR RP"
@@ -185,4 +195,5 @@ Section "Uninstall"
 
     DeleteRegKey HKLM "${UNINST_KEY}"
     DeleteRegValue HKLM "${REG_VER_KEY}" "Last Install Location"
+    System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
 SectionEnd
