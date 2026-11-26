@@ -31,7 +31,7 @@
 
 #define CORE_MTA_BG_MAX_ALPHA \
     1.00f  // ACHTUNG: Set to 1 for now due to GTA main menu showing through (no delay inserted between Entering game... and loading screen)
-#define CORE_MTA_BG_INGAME_ALPHA 0.90f
+#define CORE_MTA_BG_INGAME_ALPHA 1.00f  // MAJOR RP: was 0.90; fully cover the game and server GUI behind the ESC menu
 #define CORE_MTA_FADER           0.05f  // 1/20
 #define CORE_MTA_FADER_CREDITS   0.01f
 
@@ -225,6 +225,14 @@ CMainMenu::CMainMenu(CGUI* pManager)
     int iMenuItemIndex = 0;
     // MAJOR RP: a single "Connect to Major" button. No server browser, Host Game or Map Editor.
     m_menuItems.push_back(CreateItem(MENU_ITEM_QUICK_CONNECT, "menu_connect_major.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
+    m_pMajorRpPlay = m_menuItems.back();
+#if MAJORRP_INGAME_HIDE_PLAY
+    // Shown instead of PLAY while connected; closes the ESC menu
+    m_pMajorRpContinue = CreateItem(MENU_ITEM_CONTINUE, "menu_continue.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase));
+    m_pMajorRpContinue->image->SetVisible(false);
+    m_fMajorRpBase = fBase;
+    m_fMajorRpGap = fGap;
+#endif
 
     m_menuItems.push_back(CreateItem(MENU_ITEM_SETTINGS, "menu_settings.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
     m_menuItems.push_back(CreateItem(MENU_ITEM_ABOUT, "menu_about.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
@@ -400,6 +408,12 @@ CMainMenu::~CMainMenu()
         destroyElement(m_pNewsItemNEWLabels[i]);
     }
 
+#if MAJORRP_INGAME_HIDE_PLAY
+    // PLAY or CONTINUE is out of the list depending on the state; free it with the others
+    for (sMenuItem* pExtra : {m_pMajorRpPlay, m_pMajorRpContinue})
+        if (pExtra && std::find(m_menuItems.begin(), m_menuItems.end(), pExtra) == m_menuItems.end())
+            m_menuItems.push_back(pExtra);
+#endif
     for (sMenuItem* pItem : m_menuItems)
     {
         if (!pItem || pItem == m_pDisconnect)
@@ -887,6 +901,18 @@ bool CMainMenu::IsVisible()
 
 void CMainMenu::SetIsIngame(bool bIsIngame)
 {
+#if MAJORRP_INGAME_HIDE_PLAY
+    // MAJOR RP: while connected, DISCONNECT takes PLAY's place (PLAY makes no sense in game).
+    // The stock code slid the whole list down a slot to fit DISCONNECT above PLAY instead.
+    if (m_bIsIngame != bIsIngame)
+    {
+        m_bIsIngame = bIsIngame;
+        m_Settings.SetIsModLoaded(bIsIngame);
+        CCore::GetSingleton().GetFPSLimiter()->Reset();
+        MajorRpLayoutItems(bIsIngame);
+    }
+    return;
+#endif
     // Save some performance by making sure we don't do all this if the new state == old
     if (m_bIsIngame != bIsIngame)
     {
@@ -918,6 +944,56 @@ void CMainMenu::SetIsIngame(bool bIsIngame)
         m_iMoveStartPos = m_menuAY;
     }
 }
+
+#if MAJORRP_INGAME_HIDE_PLAY
+// MAJOR RP: menu items for each state, one per slot from the top:
+//   on the menu:  PLAY, SETTINGS, ABOUT, QUIT
+//   in game:      CONTINUE, DISCONNECT, SETTINGS, ABOUT, QUIT
+void CMainMenu::MajorRpLayoutItems(bool bIsIngame)
+{
+    m_iMoveStartPos = 0;  // no slide animation (stock code slid the list down to fit DISCONNECT)
+    m_pHoveredItem = nullptr;
+    m_unhoveredItems.clear();
+
+    // Settings/About/Quit stay in the list; rebuild the top part
+    std::deque<sMenuItem*> rest;
+    for (sMenuItem* pItem : m_menuItems)
+        if (pItem != m_pMajorRpPlay && pItem != m_pMajorRpContinue && pItem != m_pDisconnect)
+            rest.push_back(pItem);
+
+    m_menuItems.clear();
+    if (bIsIngame)
+    {
+        m_menuItems.push_back(m_pMajorRpContinue);
+        m_menuItems.push_back(m_pDisconnect);
+    }
+    else
+        m_menuItems.push_back(m_pMajorRpPlay);
+    for (sMenuItem* pItem : rest)
+        m_menuItems.push_back(pItem);
+
+    m_pMajorRpPlay->image->SetVisible(!bIsIngame);
+    m_pMajorRpContinue->image->SetVisible(bIsIngame);
+    m_pDisconnect->image->SetVisible(bIsIngame);
+    m_pDisconnect->image->SetAlpha(CORE_MTA_NORMAL_ALPHA);
+
+    for (size_t i = 0; i < m_menuItems.size(); i++)
+    {
+        m_menuItems[i]->drawPositionY = (m_fMajorRpBase + m_fMajorRpGap * i) * m_iMenuSizeY;
+        SetItemHoverProgress(m_menuItems[i], 0, false);
+    }
+
+    // Mouse-over area from the top of the first item to the bottom of the last (same maths as CreateItem)
+    sMenuItem* pTop = m_menuItems.front();
+    sMenuItem* pBottom = m_menuItems.back();
+    float      fTopSizeY = (pTop->nativeSizeY / NATIVE_RES_Y) * m_iMenuSizeY;
+    float      fBottomSizeY = (pBottom->nativeSizeY / NATIVE_RES_Y) * m_iMenuSizeY;
+    m_menuAY = pTop->drawPositionY + m_iYOff - fTopSizeY * CORE_MTA_HOVER_SCALE * 0.5f + BODGE_FACTOR_1;
+    m_menuBY = pBottom->drawPositionY + m_iYOff + fBottomSizeY * CORE_MTA_HOVER_SCALE * 0.5f + BODGE_FACTOR_2;
+    m_pMenuArea->SetPosition(CVector2D(m_menuAX - m_iXOff, m_menuAY - m_iYOff) + BODGE_FACTOR_5, false);
+    m_pMenuArea->SetSize(CVector2D(m_menuBX - m_menuAX, m_menuBY - m_menuAY) + BODGE_FACTOR_6, false);
+}
+#endif
 
 bool CMainMenu::GetIsIngame()
 {
@@ -994,6 +1070,12 @@ bool CMainMenu::OnMenuClick(CGUIMouseEventArgs Args)
 
     switch (m_pHoveredItem->menuType)
     {
+#if MAJORRP_INGAME_HIDE_PLAY
+        case MENU_ITEM_CONTINUE:
+            // Same as pressing ESC again: back to the game
+            CLocalGUI::GetSingleton().SetMainMenuVisible(false);
+            break;
+#endif
         case MENU_ITEM_DISCONNECT:
             OnDisconnectButtonClick();
             break;

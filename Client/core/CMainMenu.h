@@ -86,6 +86,11 @@ private:
     // MAJOR RP: menu animations and sounds
     void          MajorRpPlaySound(unsigned int uiSound);
     void          MajorRpAnimate();
+    void          MajorRpLayoutItems(bool bIsIngame);
+    sMenuItem*    m_pMajorRpPlay = nullptr;
+    sMenuItem*    m_pMajorRpContinue = nullptr;
+    float         m_fMajorRpBase = 0;
+    float         m_fMajorRpGap = 0;
     CVector2D     m_vecBgBasePos;
     CVector2D     m_vecBgBaseSize;
     unsigned long m_ulMajorRpStartTick = 0;
@@ -204,5 +209,6 @@ private:
         MENU_ITEM_SETTINGS,
         MENU_ITEM_ABOUT,
         MENU_ITEM_QUIT,
+        MENU_ITEM_CONTINUE,  // MAJOR RP: back to the game from the ESC menu
     };
 };

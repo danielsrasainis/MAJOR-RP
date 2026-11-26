@@ -39,6 +39,7 @@
 #include <game/CVehicleAudioSettingsManager.h>
 #include <windowsx.h>
 #include "CServerInfo.h"
+#include "majorrp_config.h"
 #include "CClientPed.h"
 
 SString StringZeroPadout(const SString& strInput, uint uiPadoutSize)
@@ -1377,6 +1378,9 @@ void CClientGame::DoPulses()
 
             // Save default streamer buffer size in IMG manager
             m_pManager->GetIMGManager()->InitDefaultBufferSize();
+
+            // MAJOR RP: models shipped with the client replace GTA models without a download
+            MajorRpLoadBuiltInModels();
         }
 
         unsigned char ucError = g_pNet->GetConnectionError();
@@ -7381,4 +7385,89 @@ std::uint8_t CClientGame::TryGetCurrentWeapon(CClientPlayer* player)
 
     eWeaponType weaponType = player->GetCurrentWeaponType();
     return (weaponType != WEAPONTYPE_INVALID) ? static_cast<std::uint8_t>(weaponType) : WEAPONTYPE_UNARMED;
+}
+
+//////////////////////////////////////////////////////////////////
+//
+// MAJOR RP: built-in replacement models
+//
+// Models listed in MTA/models/models.txt ship with the client (installer and update zip),
+// so players don't download them from the server every time and servers don't need a
+// replaceModel script for them. Each line is "<model id> <name>"; <name>.dff is required,
+// <name>.txd and <name>.col are used when present. Same order as the usual replaceModel
+// helper: textures, collision, then the model.
+//
+//////////////////////////////////////////////////////////////////
+void CClientGame::MajorRpLoadBuiltInModels()
+{
+    const SString strDir = CalcMTASAPath(PathJoin("MTA", "models"));
+    SString       strList;
+    if (!FileLoad(PathJoin(strDir, "models.txt"), strList))
+        return;
+
+    std::vector<SString> lines;
+    strList.Replace("\r", "").Split("\n", lines);
+    for (SString strLine : lines)
+    {
+        strLine = strLine.Replace("\t", " ").TrimStart(" ").TrimEnd(" ");
+        if (strLine.empty() || strLine[0] == '#')
+            continue;
+
+        SString strId, strName;
+        if (!strLine.Split(" ", &strId, &strName))
+            continue;
+        strName = strName.TrimStart(" ");
+        const int iModel = atoi(strId);
+        if (iModel <= 0 || strName.empty())
+            continue;
+        const unsigned short usModel = static_cast<unsigned short>(iModel);
+
+        const SString strBase = PathJoin(strDir, strName);
+        bool          bOk = true;
+
+        if (FileExists(strBase + ".txd"))
+        {
+            CClientTXD* pTXD = new CClientTXD(m_pManager, INVALID_ELEMENT_ID);
+            if (pTXD->Load(false, strBase + ".txd", true) && pTXD->Import(usModel))
+                pTXD->SetParent(m_pRootEntity);
+            else
+            {
+                delete pTXD;
+                bOk = false;
+            }
+        }
+
+        if (FileExists(strBase + ".col") && CClientColModelManager::IsReplacableModel(usModel))
+        {
+            CClientColModel* pCol = new CClientColModel(m_pManager, INVALID_ELEMENT_ID);
+            if (pCol->Load(false, strBase + ".col") && pCol->Replace(usModel))
+                pCol->SetParent(m_pRootEntity);
+            else
+            {
+                delete pCol;
+                bOk = false;
+            }
+        }
+
+        CClientDFF* pDFF = new CClientDFF(m_pManager, INVALID_ELEMENT_ID);
+        if (pDFF->Load(false, strBase + ".dff"))
+        {
+            m_pManager->GetDFFManager()->RestoreModel(usModel);
+            if (pDFF->ReplaceModel(usModel, false))
+                pDFF->SetParent(m_pRootEntity);
+            else
+            {
+                delete pDFF;
+                bOk = false;
+            }
+        }
+        else
+        {
+            delete pDFF;
+            bOk = false;
+        }
+
+        AddReportLog(9850, SString("MAJOR RP built-in model %u (%s): %s", usModel, *strName, bOk ? "ok" : "failed"));
+        g_pCore->GetConsole()->Printf("Built-in model %u (%s) %s", usModel, *strName, bOk ? "loaded" : "failed to load");
+    }
 }

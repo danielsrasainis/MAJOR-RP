@@ -65,3 +65,6 @@
 
 // 1 = slow zoom/pan of the menu background (menu v2). Off: Danex prefers a still background.
 #define MAJORRP_MENU_BG_PAN 0
+
+// 1 = in the ESC menu while connected, DISCONNECT replaces PLAY (menu: Disconnect, Settings, About, Quit)
+#define MAJORRP_INGAME_HIDE_PLAY 1

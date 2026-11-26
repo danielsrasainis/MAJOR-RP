@@ -564,6 +564,7 @@ private:
 
     void Event_OnIngame();
     void Event_OnIngameAndConnected();
+    void MajorRpLoadBuiltInModels();
 
     void SetupGlobalLuaEvents();
 
