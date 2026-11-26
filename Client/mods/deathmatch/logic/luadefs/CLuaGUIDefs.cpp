@@ -791,7 +791,7 @@ int CLuaGUIDefs::GUICreateStaticImage(lua_State* luaVM)
         {
             CResource* pResource = pLuaMain->GetResource();
             SString    strPath;
-            if (CResourceManager::ParseResourcePathInput(path, pResource, &strPath))
+            if (CResourceManager::ParseMajorRpBuiltinPath(path, &strPath) || CResourceManager::ParseResourcePathInput(path, pResource, &strPath))
             {
                 if (FileExists(strPath))
                 {

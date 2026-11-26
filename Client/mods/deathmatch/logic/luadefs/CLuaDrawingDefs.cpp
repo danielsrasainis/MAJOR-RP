@@ -1102,7 +1102,8 @@ int CLuaDrawingDefs::DxCreateTexture(lua_State* luaVM)
                 // From file
                 CResource* pFileResource = pParentResource;
                 SString    strPath, strMetaPath;
-                if (CResourceManager::ParseResourcePathInput(strFilePath, pFileResource, &strPath, &strMetaPath))
+                if (CResourceManager::ParseMajorRpBuiltinPath(strFilePath, &strPath, &strMetaPath) ||
+                    CResourceManager::ParseResourcePathInput(strFilePath, pFileResource, &strPath, &strMetaPath))
                 {
                     if (FileExists(strPath))
                     {

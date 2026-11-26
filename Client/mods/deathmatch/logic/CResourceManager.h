@@ -59,6 +59,9 @@ public:
 
     static bool ParseResourcePathInput(std::string strInput, CResource*& pResource, std::string* pStrPath, std::string* pStrMetaPath = nullptr,
                                        bool bPassSize = false);
+    // MAJOR RP: ":majorrp/<file>" = a read-only picture built into the client (MTA\cgui\images\majorrp\<file>),
+    // e.g. ":majorrp/map/world.png". Only used by the image loaders (dxCreateTexture, dxDrawImage, guiCreateStaticImage).
+    static bool ParseMajorRpBuiltinPath(const std::string& strInput, std::string* pStrPath, std::string* pStrMetaPath = nullptr);
 
 private:
     CMappedList<CResource*>                   m_resources;

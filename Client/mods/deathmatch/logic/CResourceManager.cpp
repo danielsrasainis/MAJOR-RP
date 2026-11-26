@@ -217,6 +217,24 @@ bool CResourceManager::ParseResourcePathInput(std::string strInput, CResource*& 
     return false;
 }
 
+bool CResourceManager::ParseMajorRpBuiltinPath(const std::string& strInput, std::string* pStrPath, std::string* pStrMetaPath)
+{
+    SString strFile = SString(strInput).Replace("\\", "/");
+    if (strFile.length() <= 9 || !strFile.substr(0, 9).CompareI(":majorrp/"))
+        return false;
+    strFile = strFile.substr(9);
+    if (!IsValidFilePath(strFile.c_str()))
+        return false;
+    const SString strExt = ExtractExtension(strFile).ToLower();
+    if (strExt != "png" && strExt != "jpg" && strExt != "dds")
+        return false;
+    if (pStrPath)
+        *pStrPath = CalcMTASAPath(PathJoin("MTA\\cgui\\images\\majorrp", strFile.Replace("/", "\\")));
+    if (pStrMetaPath)
+        *pStrMetaPath = "majorrp/" + strFile;
+    return true;
+}
+
 // When a resource file is created
 void CResourceManager::OnAddResourceFile(CDownloadableResource* pResourceFile)
 {
