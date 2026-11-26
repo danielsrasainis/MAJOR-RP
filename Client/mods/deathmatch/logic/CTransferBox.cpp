@@ -68,20 +68,6 @@ void CTransferBox::CreateMajorRPWindow()
         lbl->SetHorizontalAlign(CGUI_ALIGN_HORIZONTALCENTER);
     };
 
-    // Full-screen background behind the box during the first download after joining, so the default
-    // Vinewood camera, radar and HUD are not visible (same blurred city picture as the main menu)
-    m_backdrop.reset(m_GUI->CreateStaticImage());
-    m_backdrop->SetFrameEnabled(false);
-    m_backdrop->LoadFromFile("cgui\\images\\background.png");
-    {
-        const float fScale = std::max(screenSize.fX / 1920.0f, screenSize.fY / 1080.0f);  // cover, never stretched
-        const float fW = 1920.0f * fScale, fH = 1080.0f * fScale;
-        m_backdrop->SetPosition(CVector2D((screenSize.fX - fW) * 0.5f, (screenSize.fY - fH) * 0.5f));
-        m_backdrop->SetSize(CVector2D(fW, fH));
-    }
-    m_backdrop->SetProperty("MousePassThroughEnabled", "True");
-    m_backdrop->SetVisible(false);
-
     // Invisible container (fully transparent image) at the bottom centre of the screen
     m_card.reset(m_GUI->CreateStaticImage());
     m_card->SetFrameEnabled(false);
@@ -113,6 +99,58 @@ void CTransferBox::CreateMajorRPWindow()
 
     // The mouse cursor is hidden while downloading: ESC opens the menu, where Disconnect cancels
     image(m_cancel, m_card.get(), "cgui\\images\\majorrp\\tb3_cancel.png", (W - 122) / 2, 362, 122, 38);
+}
+
+// MAJOR RP: while the server files download after joining, show the same moving, blurred camera as the
+// account login panel (instead of MTA's default Vinewood camera with the radar), so download -> login feels
+// like one scene. Camera start and drift copy account/c_login.lua loginScreens[1] and c_login_panel.lua slideScreen.
+void CTransferBox::MajorRpBackdropPulse()
+{
+    CRenderItemManagerInterface* pRIM = g_pCore->GetGraphics()->GetRenderItemManager();
+    const CVector2D              screen = m_GUI->GetResolution();
+
+    if (!m_backdropActive)
+    {
+        m_backdropActive = true;
+        m_camPos = CVector(46.309753417969f, -1698.5400390625f, 51.138675689697f);
+        m_camLook = CVector(118.90101623535f, -1766.6478271484f, 41.555904388428f);
+        m_slide = 0;
+        g_pGame->GetHud()->SetComponentVisible(HUD_ALL, false);
+        // Put the (not yet spawned) local player near the view so the area streams in, like the login does
+        if (CClientPlayer* pLocal = g_pClientGame->GetLocalPlayer())
+            pLocal->SetPosition(CVector(118.9f, -1766.6f, 4.0f));
+        // Small copy of the screen, drawn stretched over it = blur
+        m_pBlurSource = pRIM->CreateScreenSource(std::max(32u, static_cast<uint>(screen.fX / 10)), std::max(18u, static_cast<uint>(screen.fY / 10)));
+    }
+
+    // Camera: same start point and slow sideways drift as the login panel
+    m_slide += 0.0005f;
+    const float fMove = sinf(m_slide) * 0.15f;
+    m_camPos.fX += fMove;
+    m_camLook.fX += fMove;
+    CStaticFunctionDefinitions::SetCameraMatrix(m_camPos, &m_camLook, 0, 70);
+
+    if (m_pBlurSource)
+    {
+        pRIM->UpdateScreenSource(m_pBlurSource, false);
+        CGraphicsInterface* pGraphics = g_pCore->GetGraphics();
+        // Base layer plus four slightly shifted, half transparent layers smooth out the stretched pixels
+        pGraphics->DrawTextureQueued(0, 0, screen.fX, screen.fY, 0, 0, 1, 1, true, m_pBlurSource, 0, 0, 0, 0xFFFFFFFF, false);
+        const float d = 6;
+        const float offsets[4][2] = {{-d, -d}, {d, -d}, {-d, d}, {d, d}};
+        for (const auto& o : offsets)
+            pGraphics->DrawTextureQueued(o[0], o[1], screen.fX, screen.fY, 0, 0, 1, 1, true, m_pBlurSource, 0, 0, 0, 0x60FFFFFF, false);
+        pGraphics->DrawRectQueued(0, 0, screen.fX, screen.fY, 0x64000000, false);  // same darkening as the login panel
+    }
+}
+
+void CTransferBox::MajorRpStopBackdrop() const
+{
+    if (!m_backdropActive)
+        return;
+    m_backdropActive = false;
+    SAFE_RELEASE(m_pBlurSource);
+    g_pGame->GetHud()->SetComponentVisible(HUD_ALL, true);  // scripts (account, hud) set their own HUD right after
 }
 
 void CTransferBox::SetCurrentName(const char* szName)
@@ -242,7 +280,11 @@ void CTransferBox::SetDownloadProgress(uint64_t downloadedSizeTotal)
 void CTransferBox::DoPulse()
 {
     if (m_majorRP)
+    {
+        if (m_card->IsVisible())
+            MajorRpBackdropPulse();
         return;
+    }
 
     if (m_iconTimer.Get() >= 50)
     {
@@ -288,16 +330,8 @@ void CTransferBox::UpdateWindowVisibility() const
     bool visible = m_visible.all() || (m_visible[TB_VISIBILITY_MTA] && m_alwaysVisible);
     if (m_majorRP)
     {
-        // The background is only for the first download after joining; later in-game downloads show just the box
-        if (!visible && m_backdropShown)
-            m_backdropDone = true;
-        const bool bBackdrop = visible && !m_backdropDone;
-        if (bBackdrop && !m_backdropShown)
-        {
-            m_backdropShown = true;
-            m_backdrop->MoveToBack();
-        }
-        m_backdrop->SetVisible(bBackdrop);
+        if (!visible)
+            MajorRpStopBackdrop();
         m_card->SetVisible(visible);
         if (visible)
             m_card->BringToFront();
