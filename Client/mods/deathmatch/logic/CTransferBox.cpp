@@ -124,6 +124,12 @@ void CTransferBox::MajorRpBackdropPulse()
         m_pBlurSource = pRIM->CreateScreenSource(std::max(32u, static_cast<uint>(screen.fX / 10)), std::max(18u, static_cast<uint>(screen.fY / 10)));
     }
 
+    // The server's fadeCamera on join turns the zone name back on, so keep the area and vehicle name hidden
+    CHud* pHud = g_pGame->GetHud();
+    for (eHudComponent component : {HUD_AREA_NAME, HUD_VEHICLE_NAME})
+        if (pHud->IsComponentVisible(component))
+            pHud->SetComponentVisible(component, false);
+
     // Camera: same start point and slow sideways drift as the login panel
     m_slide += 0.0005f;
     const float fMove = sinf(m_slide) * 0.15f;
@@ -165,6 +171,7 @@ void CTransferBox::MajorRpStopBackdrop() const
     m_backdropActive = false;
     SAFE_RELEASE(m_pBlurSource);
     g_pGame->GetHud()->SetComponentVisible(HUD_ALL, true);  // scripts (account, hud) set their own HUD right after
+    g_pGame->GetHud()->SetComponentVisible(HUD_AREA_NAME, false);  // like MTA after connecting: the next fadeCamera brings it back
 }
 
 void CTransferBox::SetCurrentName(const char* szName)
