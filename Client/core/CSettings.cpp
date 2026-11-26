@@ -1814,7 +1814,9 @@ void CSettings::CreateGUI()
     m_pProgressAnimationCombo->AddItem(_("Off"))->SetData((void*)0);
     m_pProgressAnimationCombo->AddItem(_("Default"))->SetData((void*)1);
     m_pProgressAnimationCombo->SetReadOnly(true);
-    vecTemp.fY += fLineHeight;
+    // MAJOR RP: the grey MTA loading spinner is never drawn (our own download box shows progress), so no option
+    m_pProgressAnimationLabel->SetVisible(false);
+    m_pProgressAnimationCombo->SetVisible(false);
 
     // Process priority
     m_pPriorityLabel = reinterpret_cast<CGUILabel*>(pManager->CreateLabel(pTabAdvanced, _("Process priority:")));

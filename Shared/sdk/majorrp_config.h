@@ -36,6 +36,9 @@
 //     The small version label in the bottom-right corner stays.
 #define MAJORRP_HIDE_TEST_BUILD_BANNER 1
 
+// 1 = never draw MTA's grey loading spinner with the % at the bottom (our own download box shows progress)
+#define MAJORRP_HIDE_PROGRESS_SPINNER 1
+
 // About window
 #define MAJORRP_OWNER_NAME  "Danex"
 #define MAJORRP_DISCORD_URL "discord.gg/majorrp"  // placeholder: put your real invite here

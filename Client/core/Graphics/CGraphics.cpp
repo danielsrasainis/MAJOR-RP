@@ -11,6 +11,7 @@
 
 #include "StdInc.h"
 #include <game/CSettings.h>
+#include "majorrp_config.h"
 #include <memory>
 #include "DXHook/CProxyDirect3DDevice9.h"
 #include "CTileBatcher.h"
@@ -2553,6 +2554,10 @@ void CGraphics::SetProgressMessage(const SString& strMessage)
 ////////////////////////////////////////////////////////////////
 void CGraphics::DrawProgressMessage(bool bPreserveBackbuffer)
 {
+    // MAJOR RP: never draw MTA's grey loading spinner with the % (it showed under our own download box)
+    if (MAJORRP_HIDE_PROGRESS_SPINNER)
+        return;
+
     // Check d3d device is usable for at least 1 second and 4 calls
     if (IsIconic(g_pCore->GetHookedWindow()) || m_pDevice->TestCooperativeLevel() != D3D_OK)
     {
