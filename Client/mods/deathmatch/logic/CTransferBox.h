@@ -24,7 +24,7 @@ class CTransferBox
 {
 public:
     explicit CTransferBox(TransferBoxType transferType);
-    ~CTransferBox() { MajorRpStopBackdrop(); }  // MAJOR RP: release the blur and give the HUD back
+    ~CTransferBox() { MajorRpStopBackdrop(); }  // MAJOR RP: give the HUD back
 
     void Show();
     void Hide();
@@ -68,7 +68,6 @@ private:
     bool                                            m_majorRP = false;
     std::unique_ptr<CGUIStaticImage>                m_card;
     mutable bool                                    m_backdropActive = false;
-    mutable CScreenSourceItem*                      m_pBlurSource = nullptr;
     CVector                                         m_camPos;
     CVector                                         m_camLook;
     float                                           m_slide = 0;

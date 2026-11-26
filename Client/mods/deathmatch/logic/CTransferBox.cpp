@@ -101,12 +101,11 @@ void CTransferBox::CreateMajorRPWindow()
     image(m_cancel, m_card.get(), "cgui\\images\\majorrp\\tb3_cancel.png", (W - 122) / 2, 362, 122, 38);
 }
 
-// MAJOR RP: while the server files download after joining, show the same moving, blurred camera as the
+// MAJOR RP: while the server files download after joining, show the same moving camera as the
 // account login panel (instead of MTA's default Vinewood camera with the radar), so download -> login feels
 // like one scene. Camera start and drift copy account/c_login.lua loginScreens[1] and c_login_panel.lua slideScreen.
 void CTransferBox::MajorRpBackdropPulse()
 {
-    CRenderItemManagerInterface* pRIM = g_pCore->GetGraphics()->GetRenderItemManager();
     const CVector2D              screen = m_GUI->GetResolution();
 
     if (!m_backdropActive)
@@ -120,8 +119,6 @@ void CTransferBox::MajorRpBackdropPulse()
         // Put the (not yet spawned) local player near the view so the area streams in, like the login does
         if (CClientPlayer* pLocal = g_pClientGame->GetLocalPlayer())
             pLocal->SetPosition(CVector(118.9f, -1766.6f, 4.0f));
-        // Small copy of the screen, drawn stretched over it = blur
-        m_pBlurSource = pRIM->CreateScreenSource(std::max(32u, static_cast<uint>(screen.fX / 10)), std::max(18u, static_cast<uint>(screen.fY / 10)));
     }
 
     // The server's fadeCamera on join turns the zone name back on, so keep the area and vehicle name hidden
@@ -137,28 +134,12 @@ void CTransferBox::MajorRpBackdropPulse()
     m_camLook.fX += fMove;
     CStaticFunctionDefinitions::SetCameraMatrix(m_camPos, &m_camLook, 0, 70);
 
-    // Smooth start: the copy of the screen is empty for the first frames and the area is still streaming in,
-    // so start from a dark screen and fade the blurred camera in (no black flicker)
+    // Smooth start: the area is still streaming in for the first frames, so start from a dark screen
+    // and fade the camera in (no black flicker)
     const float         fAge = static_cast<float>(GetTickCount64_() - m_backdropStartTick);
-    const float         fBlurIn = std::max(0.0f, std::min(1.0f, (fAge - 250.0f) / 600.0f));
     const float         fCover = 1.0f - std::max(0.0f, std::min(1.0f, (fAge - 250.0f) / 900.0f));
     CGraphicsInterface* pGraphics = g_pCore->GetGraphics();
 
-    if (m_pBlurSource)
-    {
-        pRIM->UpdateScreenSource(m_pBlurSource, false);
-        if (fBlurIn > 0)
-        {
-            const unsigned long ulBase = (static_cast<unsigned long>(255 * fBlurIn) << 24) | 0xFFFFFF;
-            const unsigned long ulSoft = (static_cast<unsigned long>(0x60 * fBlurIn) << 24) | 0xFFFFFF;
-            // Base layer plus four slightly shifted, half transparent layers smooth out the stretched pixels
-            pGraphics->DrawTextureQueued(0, 0, screen.fX, screen.fY, 0, 0, 1, 1, true, m_pBlurSource, 0, 0, 0, ulBase, false);
-            const float d = 6;
-            const float offsets[4][2] = {{-d, -d}, {d, -d}, {-d, d}, {d, d}};
-            for (const auto& o : offsets)
-                pGraphics->DrawTextureQueued(o[0], o[1], screen.fX, screen.fY, 0, 0, 1, 1, true, m_pBlurSource, 0, 0, 0, ulSoft, false);
-        }
-    }
     // Darkening like the login panel (0x64), starting from almost black
     const unsigned long ulDark = static_cast<unsigned long>(std::max(100.0f, 245.0f * fCover));
     pGraphics->DrawRectQueued(0, 0, screen.fX, screen.fY, (ulDark << 24) | 0x0A0806, false);
@@ -169,7 +150,6 @@ void CTransferBox::MajorRpStopBackdrop() const
     if (!m_backdropActive)
         return;
     m_backdropActive = false;
-    SAFE_RELEASE(m_pBlurSource);
     g_pGame->GetHud()->SetComponentVisible(HUD_ALL, true);  // scripts (account, hud) set their own HUD right after
     g_pGame->GetHud()->SetComponentVisible(HUD_AREA_NAME, false);  // like MTA after connecting: the next fadeCamera brings it back
 }
