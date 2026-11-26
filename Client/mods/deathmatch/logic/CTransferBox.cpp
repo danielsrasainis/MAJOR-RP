@@ -115,6 +115,7 @@ void CTransferBox::MajorRpBackdropPulse()
         m_camPos = CVector(46.309753417969f, -1698.5400390625f, 51.138675689697f);
         m_camLook = CVector(118.90101623535f, -1766.6478271484f, 41.555904388428f);
         m_slide = 0;
+        m_backdropStartTick = GetTickCount64_();
         g_pGame->GetHud()->SetComponentVisible(HUD_ALL, false);
         // Put the (not yet spawned) local player near the view so the area streams in, like the login does
         if (CClientPlayer* pLocal = g_pClientGame->GetLocalPlayer())
@@ -130,18 +131,31 @@ void CTransferBox::MajorRpBackdropPulse()
     m_camLook.fX += fMove;
     CStaticFunctionDefinitions::SetCameraMatrix(m_camPos, &m_camLook, 0, 70);
 
+    // Smooth start: the copy of the screen is empty for the first frames and the area is still streaming in,
+    // so start from a dark screen and fade the blurred camera in (no black flicker)
+    const float         fAge = static_cast<float>(GetTickCount64_() - m_backdropStartTick);
+    const float         fBlurIn = std::max(0.0f, std::min(1.0f, (fAge - 250.0f) / 600.0f));
+    const float         fCover = 1.0f - std::max(0.0f, std::min(1.0f, (fAge - 250.0f) / 900.0f));
+    CGraphicsInterface* pGraphics = g_pCore->GetGraphics();
+
     if (m_pBlurSource)
     {
         pRIM->UpdateScreenSource(m_pBlurSource, false);
-        CGraphicsInterface* pGraphics = g_pCore->GetGraphics();
-        // Base layer plus four slightly shifted, half transparent layers smooth out the stretched pixels
-        pGraphics->DrawTextureQueued(0, 0, screen.fX, screen.fY, 0, 0, 1, 1, true, m_pBlurSource, 0, 0, 0, 0xFFFFFFFF, false);
-        const float d = 6;
-        const float offsets[4][2] = {{-d, -d}, {d, -d}, {-d, d}, {d, d}};
-        for (const auto& o : offsets)
-            pGraphics->DrawTextureQueued(o[0], o[1], screen.fX, screen.fY, 0, 0, 1, 1, true, m_pBlurSource, 0, 0, 0, 0x60FFFFFF, false);
-        pGraphics->DrawRectQueued(0, 0, screen.fX, screen.fY, 0x64000000, false);  // same darkening as the login panel
+        if (fBlurIn > 0)
+        {
+            const unsigned long ulBase = (static_cast<unsigned long>(255 * fBlurIn) << 24) | 0xFFFFFF;
+            const unsigned long ulSoft = (static_cast<unsigned long>(0x60 * fBlurIn) << 24) | 0xFFFFFF;
+            // Base layer plus four slightly shifted, half transparent layers smooth out the stretched pixels
+            pGraphics->DrawTextureQueued(0, 0, screen.fX, screen.fY, 0, 0, 1, 1, true, m_pBlurSource, 0, 0, 0, ulBase, false);
+            const float d = 6;
+            const float offsets[4][2] = {{-d, -d}, {d, -d}, {-d, d}, {d, d}};
+            for (const auto& o : offsets)
+                pGraphics->DrawTextureQueued(o[0], o[1], screen.fX, screen.fY, 0, 0, 1, 1, true, m_pBlurSource, 0, 0, 0, ulSoft, false);
+        }
     }
+    // Darkening like the login panel (0x64), starting from almost black
+    const unsigned long ulDark = static_cast<unsigned long>(std::max(100.0f, 245.0f * fCover));
+    pGraphics->DrawRectQueued(0, 0, screen.fX, screen.fY, (ulDark << 24) | 0x0A0806, false);
 }
 
 void CTransferBox::MajorRpStopBackdrop() const

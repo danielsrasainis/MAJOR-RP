@@ -72,6 +72,7 @@ private:
     CVector                                         m_camPos;
     CVector                                         m_camLook;
     float                                           m_slide = 0;
+    long long                                       m_backdropStartTick = 0;
     std::unique_ptr<CGUIStaticImage>                m_header;
     std::unique_ptr<CGUIStaticImage>                m_ring;
     std::unique_ptr<CGUIStaticImage>                m_cancel;
