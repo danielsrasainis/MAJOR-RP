@@ -410,3 +410,7 @@ utils/DXFiles/
 !*.exe
 utils/vswhere.exe
 *.generated.h
+
+# MAJOR RP: generated at build time by utils/majorrp_pack_models.py
+Client/mods/deathmatch/logic/majorrp_models_key.h
+Shared/data/MTA San Andreas/MTA/models/models.mrp

@@ -35,6 +35,16 @@ jobs:
       - name: Install data files
         run: utils\premake5 install_data
 
+      - name: Pack built-in models (MAJOR RP)
+        # Opens Shared/majorrp-models/*.sealed with the repository secret and writes the encrypted
+        # model pack plus a per-build key header. Without the secret the client builds without them.
+        run: |
+          python -m pip install --quiet cryptography
+          python utils/majorrp_pack_models.py
+        shell: bash
+        env:
+          MAJORRP_MODELS_PRIVATE_KEY: ${{ secrets.MAJORRP_MODELS_PRIVATE_KEY }}
+
       - name: Run Build
         run: win-build.bat release ${{ matrix.platform }}
         shell: cmd

@@ -1,4 +1,0 @@
-# MAJOR RP built-in replacement models, loaded by the client when it joins the server.
-# One line per model: <model id> <file name without extension>
-# Needs <name>.dff; <name>.txd and <name>.col are used when present.
-4017 commerce_garages

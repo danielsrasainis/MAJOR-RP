@@ -7391,22 +7391,84 @@ std::uint8_t CClientGame::TryGetCurrentWeapon(CClientPlayer* player)
 //
 // MAJOR RP: built-in replacement models
 //
-// Models listed in MTA/models/models.txt ship with the client (installer and update zip),
-// so players don't download them from the server every time and servers don't need a
-// replaceModel script for them. Each line is "<model id> <name>"; <name>.dff is required,
-// <name>.txd and <name>.col are used when present. Same order as the usual replaceModel
-// helper: textures, collision, then the model.
+// Models ship with the client inside MTA/models/models.mrp, an AES-256 encrypted pack made at
+// build time (utils/majorrp_pack_models.py) with a key that exists only in this build's binary.
+// That keeps the .dff/.txd/.col files out of reach of normal players and model rippers, and the
+// models need no download or replaceModel script. The pack holds "models.txt" (lines
+// "<model id> <name>") plus the files; <name>.dff is required, <name>.txd and <name>.col are
+// used when present. Same order as the usual replaceModel helper: textures, collision, model.
 //
 //////////////////////////////////////////////////////////////////
+#if __has_include("majorrp_models_key.h")
+    #include "majorrp_models_key.h"
+#else
+    #define MAJORRP_MODELS_HAVE_KEY 0
+#endif
+#include <bcrypt.h>
+#pragma comment(lib, "bcrypt.lib")
+
+static bool MajorRpDecryptPack(const SString& strFile, std::map<SString, SString>& outFiles)
+{
+#if MAJORRP_MODELS_HAVE_KEY
+    SString strData;
+    if (!FileLoad(strFile, strData) || strData.length() < 5 + 16 + 16 || strData.substr(0, 5) != "MRPK1")
+        return false;
+
+    unsigned char key[32];
+    for (int i = 0; i < 32; i++)
+        key[i] = g_MajorRpModelsKeyA[i] ^ g_MajorRpModelsKeyB[i];
+    unsigned char iv[16];
+    memcpy(iv, strData.data() + 5, 16);
+
+    BCRYPT_ALG_HANDLE          hAlg = nullptr;
+    BCRYPT_KEY_HANDLE          hKey = nullptr;
+    std::vector<unsigned char> plain(strData.length());
+    ULONG                      ulPlain = 0;
+    bool                       bOk = BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_AES_ALGORITHM, nullptr, 0) == 0 &&
+               BCryptSetProperty(hAlg, BCRYPT_CHAINING_MODE, (PUCHAR)BCRYPT_CHAIN_MODE_CBC, sizeof(BCRYPT_CHAIN_MODE_CBC), 0) == 0 &&
+               BCryptGenerateSymmetricKey(hAlg, &hKey, nullptr, 0, key, sizeof(key), 0) == 0 &&
+               BCryptDecrypt(hKey, (PUCHAR)strData.data() + 21, (ULONG)(strData.length() - 21), nullptr, iv, sizeof(iv), plain.data(), (ULONG)plain.size(),
+                             &ulPlain, BCRYPT_BLOCK_PADDING) == 0;
+    if (hKey)
+        BCryptDestroyKey(hKey);
+    if (hAlg)
+        BCryptCloseAlgorithmProvider(hAlg, 0);
+    SecureZeroMemory(key, sizeof(key));
+    if (!bOk)
+        return false;
+
+    // Entries: [u32 name length][name][u32 data length][data] ...
+    size_t pos = 0;
+    while (pos + 4 <= ulPlain)
+    {
+        uint32_t uiNameLen = *reinterpret_cast<const uint32_t*>(&plain[pos]);
+        pos += 4;
+        if (pos + uiNameLen + 4 > ulPlain)
+            return false;
+        SString strName(reinterpret_cast<const char*>(&plain[pos]), uiNameLen);
+        pos += uiNameLen;
+        uint32_t uiDataLen = *reinterpret_cast<const uint32_t*>(&plain[pos]);
+        pos += 4;
+        if (pos + uiDataLen > ulPlain)
+            return false;
+        outFiles[strName.ToLower()] = SString(reinterpret_cast<const char*>(&plain[pos]), uiDataLen);
+        pos += uiDataLen;
+    }
+    SecureZeroMemory(plain.data(), plain.size());
+    return true;
+#else
+    return false;
+#endif
+}
+
 void CClientGame::MajorRpLoadBuiltInModels()
 {
-    const SString strDir = CalcMTASAPath(PathJoin("MTA", "models"));
-    SString       strList;
-    if (!FileLoad(PathJoin(strDir, "models.txt"), strList))
+    std::map<SString, SString> files;
+    if (!MajorRpDecryptPack(CalcMTASAPath(PathJoin("MTA", "models", "models.mrp")), files))
         return;
 
     std::vector<SString> lines;
-    strList.Replace("\r", "").Split("\n", lines);
+    files["models.txt"].Replace("\r", "").Split("\n", lines);
     for (SString strLine : lines)
     {
         strLine = strLine.Replace("\t", " ").TrimStart(" ").TrimEnd(" ");
@@ -7416,19 +7478,18 @@ void CClientGame::MajorRpLoadBuiltInModels()
         SString strId, strName;
         if (!strLine.Split(" ", &strId, &strName))
             continue;
-        strName = strName.TrimStart(" ");
+        strName = strName.TrimStart(" ").ToLower();
         const int iModel = atoi(strId);
         if (iModel <= 0 || strName.empty())
             continue;
         const unsigned short usModel = static_cast<unsigned short>(iModel);
+        bool                 bOk = true;
 
-        const SString strBase = PathJoin(strDir, strName);
-        bool          bOk = true;
-
-        if (FileExists(strBase + ".txd"))
+        auto itTxd = files.find(strName + ".txd");
+        if (itTxd != files.end())
         {
             CClientTXD* pTXD = new CClientTXD(m_pManager, INVALID_ELEMENT_ID);
-            if (pTXD->Load(false, strBase + ".txd", true) && pTXD->Import(usModel))
+            if (pTXD->Load(true, itTxd->second, true) && pTXD->Import(usModel))
                 pTXD->SetParent(m_pRootEntity);
             else
             {
@@ -7437,10 +7498,11 @@ void CClientGame::MajorRpLoadBuiltInModels()
             }
         }
 
-        if (FileExists(strBase + ".col") && CClientColModelManager::IsReplacableModel(usModel))
+        auto itCol = files.find(strName + ".col");
+        if (itCol != files.end() && CClientColModelManager::IsReplacableModel(usModel))
         {
             CClientColModel* pCol = new CClientColModel(m_pManager, INVALID_ELEMENT_ID);
-            if (pCol->Load(false, strBase + ".col") && pCol->Replace(usModel))
+            if (pCol->Load(true, itCol->second) && pCol->Replace(usModel))
                 pCol->SetParent(m_pRootEntity);
             else
             {
@@ -7449,8 +7511,9 @@ void CClientGame::MajorRpLoadBuiltInModels()
             }
         }
 
+        auto        itDff = files.find(strName + ".dff");
         CClientDFF* pDFF = new CClientDFF(m_pManager, INVALID_ELEMENT_ID);
-        if (pDFF->Load(false, strBase + ".dff"))
+        if (itDff != files.end() && pDFF->Load(true, itDff->second))
         {
             m_pManager->GetDFFManager()->RestoreModel(usModel);
             if (pDFF->ReplaceModel(usModel, false))
@@ -7467,7 +7530,7 @@ void CClientGame::MajorRpLoadBuiltInModels()
             bOk = false;
         }
 
-        AddReportLog(9850, SString("MAJOR RP built-in model %u (%s): %s", usModel, *strName, bOk ? "ok" : "failed"));
-        g_pCore->GetConsole()->Printf("Built-in model %u (%s) %s", usModel, *strName, bOk ? "loaded" : "failed to load");
+        AddReportLog(9850, SString("MAJOR RP built-in model %u: %s", usModel, bOk ? "ok" : "failed"));
+        g_pCore->GetConsole()->Printf("Built-in model %u %s", usModel, bOk ? "loaded" : "failed to load");
     }
 }
