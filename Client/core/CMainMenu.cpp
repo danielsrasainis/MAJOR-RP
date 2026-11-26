@@ -11,6 +11,7 @@
 
 #include "StdInc.h"
 #include "majorrp_config.h"
+#include <game/CAudioEngine.h>
 #include <game/CGame.h>
 #include "CNewsBrowser.h"
 #include "CLanguageSelector.h"
@@ -34,10 +35,22 @@
 #define CORE_MTA_FADER           0.05f  // 1/20
 #define CORE_MTA_FADER_CREDITS   0.01f
 
+#if MAJORRP_MENU_V2
+// MAJOR RP: pill buttons, subtle grow + highlight fade on hover
+#define CORE_MTA_HOVER_SCALE  1.0f
+#define CORE_MTA_NORMAL_SCALE 0.94f
+#define CORE_MTA_HOVER_ALPHA  1.0f
+#define CORE_MTA_NORMAL_ALPHA 0.92f
+#define MAJORRP_MENU_IMAGE_SCALE 0.5f  // button images are drawn at 2x for sharpness
+#define MAJORRP_UNHOVER_SPEED    0.5f
+#define MAJORRP_SOUND_HOVER      3     // GTA frontend "highlight"
+#define MAJORRP_SOUND_CLICK      1     // GTA frontend "select"
+#else
 #define CORE_MTA_HOVER_SCALE  1.0f
 #define CORE_MTA_NORMAL_SCALE 0.6f
 #define CORE_MTA_HOVER_ALPHA  1.0f
 #define CORE_MTA_NORMAL_ALPHA 0.6f
+#endif
 
 #define CORE_MTA_HIDDEN_ALPHA   0.0f
 #define CORE_MTA_DISABLED_ALPHA 0.4f
@@ -144,6 +157,8 @@ CMainMenu::CMainMenu(CGUI* pManager)
     m_pBackground->LoadFromFile(CORE_MTA_STATIC_BG);
     m_pBackground->SetProperty("InheritsAlpha", "False");
     m_pBackground->SetPosition(CVector2D(iBackgroundX + iBgImageX, iBgImageY), false);
+    m_vecBgBasePos = CVector2D(iBackgroundX + iBgImageX, iBgImageY);  // MAJOR RP: for the slow background pan
+    m_vecBgBaseSize = CVector2D(iBackgroundSizeX, iBackgroundSizeY);
     m_pBackground->SetSize(CVector2D(iBackgroundSizeX, iBackgroundSizeY), false);
     m_pBackground->SetZOrderingEnabled(false);
     m_pBackground->SetAlwaysOnTop(true);
@@ -171,11 +186,17 @@ CMainMenu::CMainMenu(CGUI* pManager)
 
     // Create our MTA logo
     CVector2D logoSize = CVector2D((NATIVE_LOGO_X / NATIVE_RES_X) * m_iMenuSizeX, (NATIVE_LOGO_Y / NATIVE_RES_Y) * m_iMenuSizeY);
+#if MAJORRP_MENU_V2
+    logoSize = logoSize * 0.86f;  // MAJOR RP: a bit smaller, leaves room for the pill buttons
+    const float fLogoCentreY = 0.335f;
+#else
+    const float fLogoCentreY = 0.365f;
+#endif
     m_pLogo = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pCanvas));
     m_pLogo->LoadFromFile(CORE_MTA_LOGO);
     m_pLogo->SetProperty("InheritsAlpha", "False");
     m_pLogo->SetSize(logoSize, false);
-    m_pLogo->SetPosition(CVector2D(0.5f * m_iMenuSizeX - logoSize.fX / 2, 0.365f * m_iMenuSizeY - logoSize.fY / 2), false);
+    m_pLogo->SetPosition(CVector2D(0.5f * m_iMenuSizeX - logoSize.fX / 2, fLogoCentreY * m_iMenuSizeY - logoSize.fY / 2), false);
     m_pLogo->SetZOrderingEnabled(false);
 
     // Create the image showing the version number
@@ -187,8 +208,13 @@ CMainMenu::CMainMenu(CGUI* pManager)
     m_pVersion->SetProperty("InheritsAlpha", "False");
     m_pVersion->SetVisible(false);  // MAJOR RP: hide the "1.7" badge next to the logo
 
+#if MAJORRP_MENU_V2
+    float fBase = 0.655f;  // MAJOR RP: pill buttons under the logo
+    float fGap = 0.066f;
+#else
     float fBase = 0.685f;  // MAJOR RP: between the logo and the orange line
     float fGap = 0.043f;
+#endif
     // Our disconnect item is shown/hidden dynamically, so we store it separately
     m_pDisconnect = CreateItem(MENU_ITEM_DISCONNECT, "menu_disconnect.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * 0));
     m_pDisconnect->image->SetVisible(false);
@@ -462,8 +488,52 @@ void CMainMenu::SetMenuUnhovered()  // Dehighlight all our items
     }
 }
 
+#if MAJORRP_MENU_V2
+// MAJOR RP: GTA frontend sound for menu hover/click (ignored if game audio isn't ready)
+void CMainMenu::MajorRpPlaySound(unsigned int uiSound)
+{
+    if (CGame* pGame = CCore::GetSingleton().GetGame())
+        if (CAudioEngine* pAudio = pGame->GetAudioEngine())
+            pAudio->PlayFrontEndSound(uiSound);
+}
+
+// MAJOR RP: slow "Ken Burns" pan of the background and a logo fade-in
+void CMainMenu::MajorRpAnimate()
+{
+    const unsigned long ulNow = GetTickCount32();
+    if (m_ulMajorRpStartTick == 0)
+        m_ulMajorRpStartTick = ulNow;
+    const float fSeconds = (ulNow - m_ulMajorRpStartTick) / 1000.0f;
+
+    if (m_pBackground && m_vecBgBaseSize.fX > 0)
+    {
+        const float     fZoom = 1.07f;
+        const CVector2D size = m_vecBgBaseSize * fZoom;
+        const CVector2D extra = size - m_vecBgBaseSize;
+        const float     fx = sinf(fSeconds * 6.2831853f / 48.0f);
+        const float     fy = cosf(fSeconds * 6.2831853f / 64.0f);
+        m_pBackground->SetSize(size, false);
+        m_pBackground->SetPosition(CVector2D(m_vecBgBasePos.fX - extra.fX * (0.5f + 0.5f * fx), m_vecBgBasePos.fY - extra.fY * (0.5f + 0.5f * fy)), false);
+    }
+
+    if (m_pLogo && fSeconds < 2.0f)
+    {
+        const float t = Clamp(0.0f, (fSeconds - 0.2f) / 1.2f, 1.0f);
+        m_pLogo->SetAlpha(t * t * (3 - 2 * t));  // smoothstep
+    }
+    else if (m_pLogo && !m_bMajorRpLogoDone)
+    {
+        m_pLogo->SetAlpha(1.0f);
+        m_bMajorRpLogoDone = true;
+    }
+}
+#endif
+
 void CMainMenu::Update()
 {
+#if MAJORRP_MENU_V2
+    MajorRpAnimate();
+#endif
     if (g_pCore->GetDiagnosticDebug() == EDiagnosticDebug::JOYSTICK_0000)
     {
         m_pFiller->SetVisible(false);
@@ -533,6 +603,10 @@ void CMainMenu::Update()
             const int iCenterX = pItem->drawPositionX + m_iXOff;  // MAJOR RP: items are centred
             if (cursor.x > iCenterX - iSizeX / 2 && cursor.x < iCenterX + iSizeX / 2)
             {
+#if MAJORRP_MENU_V2
+                if (m_pHoveredItem != pItem)
+                    MajorRpPlaySound(MAJORRP_SOUND_HOVER);
+#endif
                 if ((m_pHoveredItem) && (m_pHoveredItem != pItem))
                 {
                     m_unhoveredItems.insert(m_pHoveredItem);
@@ -570,7 +644,11 @@ void CMainMenu::Update()
             // Let's work out what the target progress should be by working out the time passed
             // Min of 0.5 progress fixes occasional graphical glitches
             float newProgress =
+#if MAJORRP_MENU_V2
+                (*it)->animProgress - std::min(0.5f, ((float)ulTimePassed / CORE_MTA_ANIMATION_TIME_OUT) * MAJORRP_UNHOVER_SPEED);
+#else
                 (*it)->animProgress - std::min(0.5f, ((float)ulTimePassed / CORE_MTA_ANIMATION_TIME_OUT) * (CORE_MTA_HOVER_ALPHA - CORE_MTA_NORMAL_ALPHA));
+#endif
             if (SetItemHoverProgress((*it), newProgress, false))
             {
                 std::set<sMenuItem*>::iterator itToErase = it++;
@@ -870,6 +948,10 @@ bool CMainMenu::OnMenuClick(CGUIMouseEventArgs Args)
     // For detecting startup problems
     WatchDogUserDidInteractWithMenu();
 
+#if MAJORRP_MENU_V2
+    MajorRpPlaySound(MAJORRP_SOUND_CLICK);
+#endif
+
     // Possible disconnect question for user
     if (g_pCore->IsConnected())
     {
@@ -1113,6 +1195,9 @@ sMenuItem* CMainMenu::CreateItem(unsigned char menuType, const char* szFilename,
     // Make our sizes relative to the size of menu, but in absolute coordinates
     CVector2D vecNativeSize;
     pImage->GetNativeSize(vecNativeSize);
+#if MAJORRP_MENU_V2
+    vecNativeSize = vecNativeSize * MAJORRP_MENU_IMAGE_SCALE;
+#endif
     int iSizeX = (vecNativeSize.fX / NATIVE_RES_X) * m_iMenuSizeX;
     int iSizeY = (vecNativeSize.fY / NATIVE_RES_Y) * m_iMenuSizeY;
 
@@ -1140,6 +1225,22 @@ sMenuItem* CMainMenu::CreateItem(unsigned char menuType, const char* szFilename,
     s->nativeSizeX = vecNativeSize.fX;
     s->nativeSizeY = vecNativeSize.fY;
     s->image = pImage;
+#if MAJORRP_MENU_V2
+    // Highlighted version as a child that always covers the button; faded in on hover
+    SString strHover = SString(szFilename).Replace(".png", "_hover.png");
+    CGUIStaticImage* pHover = reinterpret_cast<CGUIStaticImage*>(m_pManager->CreateStaticImage(pImage));
+    auto pLanguage = g_pLocalization->GetLanguage("en_US");
+    if (pHover->LoadFromFile(PathJoin(g_pCore->GetLocalization()->GetLanguageDirectory(pLanguage), strHover)))
+    {
+        pHover->SetPosition(CVector2D(0, 0), true);
+        pHover->SetSize(CVector2D(1, 1), true);
+        pHover->SetProperty("MousePassThroughEnabled", "True");
+        pHover->SetAlpha(0);
+        s->hoverImage = pHover;
+    }
+    else
+        m_pManager->DestroyElementRecursive(pHover);
+#endif
     return s;
 }
 
@@ -1157,6 +1258,8 @@ bool CMainMenu::SetItemHoverProgress(sMenuItem* pItem, float fProgress, bool bHo
 
     // Work out our current progress based upon the alpha value now
     pItem->image->SetAlpha((CORE_MTA_HOVER_ALPHA - CORE_MTA_NORMAL_ALPHA) * (fProgress) + CORE_MTA_NORMAL_ALPHA);
+    if (pItem->hoverImage)
+        pItem->hoverImage->SetAlpha(fProgress);
 
     int iSizeX = (pItem->nativeSizeX / NATIVE_RES_X) * m_iMenuSizeX * fTargetScale;
     int iSizeY = (pItem->nativeSizeY / NATIVE_RES_Y) * m_iMenuSizeY * fTargetScale;

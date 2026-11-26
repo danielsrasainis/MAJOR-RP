@@ -33,6 +33,7 @@ struct sMenuItem
     int              nativeSizeX;
     int              nativeSizeY;
     CGUIStaticImage* image;
+    CGUIStaticImage* hoverImage = nullptr;  // MAJOR RP: highlighted version, faded in on hover
     float            animProgress{};
 };
 
@@ -82,6 +83,14 @@ public:
     bool WarnIfLocalServerUnsupported();
 
 private:
+    // MAJOR RP: menu animations and sounds
+    void          MajorRpPlaySound(unsigned int uiSound);
+    void          MajorRpAnimate();
+    CVector2D     m_vecBgBasePos;
+    CVector2D     m_vecBgBaseSize;
+    unsigned long m_ulMajorRpStartTick = 0;
+    bool          m_bMajorRpLogoDone = false;
+
     sMenuItem* CreateItem(unsigned char menuType, const char* szFilename, CVector2D vecRelPosition);
     bool       SetItemHoverProgress(sMenuItem* pItem, float fProgress, bool bHovering);
 

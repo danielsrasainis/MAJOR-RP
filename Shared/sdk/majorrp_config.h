@@ -59,3 +59,6 @@
 #define MAJORRP_DISCORD_APP_ID     "468493322583801867"
 #define MAJORRP_DISCORD_ASSET      "mta_logo_round"
 #define MAJORRP_DISCORD_ASSET_TEXT "MAJOR RP"
+
+// Main menu v2: pill buttons with hover highlight, hover/click sounds, slow background pan, logo fade-in
+#define MAJORRP_MENU_V2 1
