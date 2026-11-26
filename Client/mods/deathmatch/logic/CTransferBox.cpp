@@ -68,6 +68,20 @@ void CTransferBox::CreateMajorRPWindow()
         lbl->SetHorizontalAlign(CGUI_ALIGN_HORIZONTALCENTER);
     };
 
+    // Full-screen background behind the box during the first download after joining, so the default
+    // Vinewood camera, radar and HUD are not visible (same blurred city picture as the main menu)
+    m_backdrop.reset(m_GUI->CreateStaticImage());
+    m_backdrop->SetFrameEnabled(false);
+    m_backdrop->LoadFromFile("cgui\\images\\background.png");
+    {
+        const float fScale = std::max(screenSize.fX / 1920.0f, screenSize.fY / 1080.0f);  // cover, never stretched
+        const float fW = 1920.0f * fScale, fH = 1080.0f * fScale;
+        m_backdrop->SetPosition(CVector2D((screenSize.fX - fW) * 0.5f, (screenSize.fY - fH) * 0.5f));
+        m_backdrop->SetSize(CVector2D(fW, fH));
+    }
+    m_backdrop->SetProperty("MousePassThroughEnabled", "True");
+    m_backdrop->SetVisible(false);
+
     // Invisible container (fully transparent image) at the bottom centre of the screen
     m_card.reset(m_GUI->CreateStaticImage());
     m_card->SetFrameEnabled(false);
@@ -274,7 +288,19 @@ void CTransferBox::UpdateWindowVisibility() const
     bool visible = m_visible.all() || (m_visible[TB_VISIBILITY_MTA] && m_alwaysVisible);
     if (m_majorRP)
     {
+        // The background is only for the first download after joining; later in-game downloads show just the box
+        if (!visible && m_backdropShown)
+            m_backdropDone = true;
+        const bool bBackdrop = visible && !m_backdropDone;
+        if (bBackdrop && !m_backdropShown)
+        {
+            m_backdropShown = true;
+            m_backdrop->MoveToBack();
+        }
+        m_backdrop->SetVisible(bBackdrop);
         m_card->SetVisible(visible);
+        if (visible)
+            m_card->BringToFront();
         return;
     }
     m_window->SetVisible(visible);

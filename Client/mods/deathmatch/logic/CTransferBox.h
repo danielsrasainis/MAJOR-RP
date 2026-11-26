@@ -64,6 +64,9 @@ private:
     // MAJOR RP: modern download box
     bool                                            m_majorRP = false;
     std::unique_ptr<CGUIStaticImage>                m_card;
+    std::unique_ptr<CGUIStaticImage>                m_backdrop;
+    mutable bool                                    m_backdropShown = false;
+    mutable bool                                    m_backdropDone = false;
     std::unique_ptr<CGUIStaticImage>                m_header;
     std::unique_ptr<CGUIStaticImage>                m_ring;
     std::unique_ptr<CGUIStaticImage>                m_cancel;
