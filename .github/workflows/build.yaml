@@ -80,7 +80,7 @@ jobs:
           path: MAJORRP/
 
   installer:
-    # MAJOR RP: player installer "MAJOR RP Setup.exe" (client only, no server), built from the win32 client
+    # MAJOR RP: player installer "MRP_installer.exe" (client only, no server), built from the win32 client
     name: installer
     needs: windows
     runs-on: ubuntu-latest
@@ -98,7 +98,7 @@ jobs:
           rm -rf client/server client/tests   # players don't need the server or the developer unit tests
           mkdir -p out
           cd Shared/installer
-          makensis -V2 -DSRC_DIR="$GITHUB_WORKSPACE/client" -DOUT_FILE="$GITHUB_WORKSPACE/out/MAJOR RP Setup.exe" -DVERSION="1.0.0.${{ github.run_number }}" majorrp.nsi
+          makensis -V2 -DSRC_DIR="$GITHUB_WORKSPACE/client" -DOUT_FILE="$GITHUB_WORKSPACE/out/MRP_installer.exe" -DVERSION="1.0.0.${{ github.run_number }}" majorrp.nsi
         shell: bash
       - uses: actions/upload-artifact@v6
         with:

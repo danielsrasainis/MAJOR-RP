@@ -16,7 +16,7 @@ RequestExecutionLevel admin   ; writes to Program Files and HKLM, like the stock
     !define SRC_DIR "../../InstallFiles"
 !endif
 !ifndef OUT_FILE
-    !define OUT_FILE "MAJOR RP Setup.exe"
+    !define OUT_FILE "MRP_installer.exe"
 !endif
 !ifndef VERSION
     !define VERSION "1.0.0.0"
@@ -135,13 +135,14 @@ Section "MAJOR RP (required)" SecCore
     WriteRegStr HKLM "${REG_COMMON_KEY}" "GTA:SA Path" "$GTA_DIR"
     WriteRegStr HKLM "${REG_VER_KEY}" "Last Install Location" "$INSTDIR"
 
-    WriteUninstaller "$INSTDIR\Uninstall MAJOR RP.exe"
+    Delete "$INSTDIR\Uninstall MAJOR RP.exe"   ; old name from the first installer build
+    WriteUninstaller "$INSTDIR\Uninstall MRP.exe"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "${PRODUCT_NAME}"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayIcon" "$INSTDIR\${CLIENT_EXE}"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayVersion" "${VERSION}"
     WriteRegStr HKLM "${UNINST_KEY}" "Publisher" "MAJOR RP"
     WriteRegStr HKLM "${UNINST_KEY}" "InstallLocation" "$INSTDIR"
-    WriteRegStr HKLM "${UNINST_KEY}" "UninstallString" '"$INSTDIR\Uninstall MAJOR RP.exe"'
+    WriteRegStr HKLM "${UNINST_KEY}" "UninstallString" '"$INSTDIR\Uninstall MRP.exe"'
     WriteRegDWORD HKLM "${UNINST_KEY}" "NoModify" 1
     WriteRegDWORD HKLM "${UNINST_KEY}" "NoRepair" 1
     ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
@@ -164,7 +165,8 @@ Section "Start menu shortcuts" SecStartMenu
     SetShellVarContext all
     CreateDirectory "$SMPROGRAMS\MAJOR RP"
     CreateShortcut "$SMPROGRAMS\MAJOR RP\MAJOR RP.lnk" "$INSTDIR\${CLIENT_EXE}" "" "$INSTDIR\${CLIENT_EXE}" 0
-    CreateShortcut "$SMPROGRAMS\MAJOR RP\Uninstall MAJOR RP.lnk" "$INSTDIR\Uninstall MAJOR RP.exe"
+    Delete "$SMPROGRAMS\MAJOR RP\Uninstall MAJOR RP.lnk"   ; old name from the first installer build
+    CreateShortcut "$SMPROGRAMS\MAJOR RP\Uninstall MRP.lnk" "$INSTDIR\Uninstall MRP.exe"
 SectionEnd
 
 ; Off by default: GTA SA players almost always have DirectX 9 already, and this needs internet.
