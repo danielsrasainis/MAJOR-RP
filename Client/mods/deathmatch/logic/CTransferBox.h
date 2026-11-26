@@ -64,15 +64,12 @@ private:
     // MAJOR RP: modern download box
     bool                                            m_majorRP = false;
     std::unique_ptr<CGUIStaticImage>                m_card;
+    std::unique_ptr<CGUIStaticImage>                m_header;
     std::unique_ptr<CGUIStaticImage>                m_ring;
     std::unique_ptr<CGUIStaticImage>                m_cancel;
     std::unique_ptr<CGUILabel>                      m_resourceName;
     std::string                                     m_currentName;
     int                                             m_ringFrame = -1;
-    std::unique_ptr<CGUILabel>                      m_title;
-    std::unique_ptr<CGUILabel>                      m_subtitle;
-    std::unique_ptr<CGUILabel>                      m_percent;
-    std::unique_ptr<CGUILabel>                      m_footer;
     std::array<std::unique_ptr<CGUIStaticImage>, 3> m_statBox;
     std::array<std::unique_ptr<CGUILabel>, 3>       m_statKey;
     std::array<std::unique_ptr<CGUILabel>, 3>       m_statValue;

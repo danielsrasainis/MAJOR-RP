@@ -144,6 +144,18 @@ bool CClientSound::Create()
         if (!g_pCore->GetCVars()->GetValue("allow_external_sounds", true))
             return false;
 
+    // MAJOR RP: scrambled cache sound -> play it from memory, unscrambled
+    if (!m_Buffer && !m_bStream && !m_strPath.empty() && MajorRpCacheIsScrambledFile(m_strPath))
+    {
+        std::vector<char> data;
+        if (MajorRpCacheLoad(m_strPath, data) && !data.empty())
+        {
+            char* pMemory = new char[data.size()];
+            memcpy(pMemory, data.data(), data.size());
+            AdoptBuffer(pMemory, static_cast<unsigned int>(data.size()), AudioBufferDeleter::ForNewArray());
+        }
+    }
+
     // Initial state
     if (!m_Buffer)
         m_pAudio = new CBassAudio(m_bStream, m_strPath, m_bLoop, m_bThrottle, m_b3D);

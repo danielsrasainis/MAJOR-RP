@@ -110,6 +110,19 @@ CClientGuiFont* CClientRenderElementManager::CreateGuiFont(const SString& strFul
 CClientTexture* CClientRenderElementManager::CreateTexture(const SString& strFullFilePath, const CPixels* pPixels, bool bMipMaps, uint uiSizeX, uint uiSizeY,
                                                            ERenderFormat format, ETextureAddress textureAddress, ETextureType textureType, uint uiVolumeDepth)
 {
+    // MAJOR RP: scrambled cache image -> create the texture from the unscrambled bytes in memory
+    CPixels unscrambled;
+    if (!pPixels && textureType == TTYPE_TEXTURE && !strFullFilePath.empty() && MajorRpCacheIsScrambledFile(strFullFilePath))
+    {
+        std::vector<char> data;
+        if (MajorRpCacheLoad(strFullFilePath, data) && !data.empty())
+        {
+            unscrambled.SetSize(static_cast<uint>(data.size()));
+            memcpy(unscrambled.GetData(), data.data(), data.size());
+            pPixels = &unscrambled;
+        }
+    }
+
     // Create the item
     CTextureItem* pTextureItem =
         m_pRenderItemManager->CreateTexture(strFullFilePath, pPixels, bMipMaps, uiSizeX, uiSizeY, format, textureAddress, textureType, uiVolumeDepth);

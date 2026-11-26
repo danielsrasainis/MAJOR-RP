@@ -41,11 +41,20 @@ bool CScriptFile::Load(CResource* pResourceForFilePath, eMode Mode)
         {
             // Open file in read only binary mode
             case MODE_READ:
+                // MAJOR RP: scrambled cache files are read from memory, unscrambled
+                if (CBinaryFileInterface* pMemFile = MajorRpCacheOpenForScript(m_strAbsPath, false))
+                {
+                    delete m_pFile;
+                    m_pFile = pMemFile;
+                    bOk = true;
+                    break;
+                }
                 bOk = m_pFile->FOpen(m_strAbsPath, "rb", true);
                 break;
 
             // Open file in read write binary mode.
             case MODE_READWRITE:
+                MajorRpCacheOpenForScript(m_strAbsPath, true);  // MAJOR RP: make a scrambled file plain before changing it
                 // Try to load the file in rw mode. Use existing content.
                 bOk = m_pFile->FOpen(m_strAbsPath, "rb+", true);
                 break;

@@ -11,7 +11,7 @@
     <Image Name="ButtonLeft" XPos="36" YPos="133" Width="5" Height="22" />
     <Image Name="Frame2Left" XPos="1" YPos="133" Width="5" Height="22" />
     <Image Name="FrameRight" XPos="60" YPos="172" Width="8" Height="17" />
-    <Image Name="HeaderLine" XPos="87" YPos="189" Width="1" Height="1" />
+    <Image Name="HeaderLine" XPos="30" YPos="10" Width="1" Height="1" />
     <Image Name="MouseArrow" XPos="1" YPos="0" Width="12" Height="15" />
     <Image Name="SButtonTop" XPos="6" YPos="164" Width="22" Height="5" />
     <Image Name="TabTopLeft" XPos="71" YPos="128" Width="4" Height="7" />
@@ -28,7 +28,7 @@
     <Image Name="CheckboxMark" XPos="89" YPos="37" Width="15" Height="16" />
     <Image Name="Frame2Bottom" XPos="6" YPos="155" Width="22" Height="6" />
     <Image Name="FrameTopLeft" XPos="36" YPos="164" Width="8" Height="8" />
-    <Image Name="GenericBrush" XPos="44" YPos="172" Width="16" Height="17" />
+    <Image Name="GenericBrush" XPos="22" YPos="2" Width="16" Height="17" />
     <Image Name="LargeUpArrow" XPos="5" YPos="28" Width="10" Height="7" />
     <Image Name="ProgressLeft" XPos="42" YPos="38" Width="10" Height="1" />
     <Image Name="SButtonRight" XPos="28" YPos="169" Width="5" Height="22" />
@@ -96,7 +96,7 @@
     <Image Name="Frame2TopLeftSquared" XPos="1" YPos="128" Width="5" Height="5" />
     <Image Name="FrameTopRightSquared" XPos="95" YPos="164" Width="8" Height="8" />
     <Image Name="RadioButtonMarkHover" XPos="107" YPos="73" Width="15" Height="16" />
-    <Image Name="ListboxSelectionBrush" XPos="79" YPos="172" Width="16" Height="17" />
+    <Image Name="ListboxSelectionBrush" XPos="42" YPos="2" Width="16" Height="17" />
     <Image Name="NESWSizingCursorImage" XPos="82" YPos="103" Width="19" Height="19" />
     <Image Name="NWSESizingCursorImage" XPos="58" YPos="103" Width="19" Height="19" />
     <Image Name="ProgressBarDimSegment" XPos="74" YPos="31" Width="5" Height="15" />

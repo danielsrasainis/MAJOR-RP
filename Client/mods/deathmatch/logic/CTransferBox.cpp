@@ -42,10 +42,10 @@ CTransferBox::CTransferBox(TransferBoxType transferType) : m_GUI(g_pCore->GetGUI
 #endif
 }
 
-// MAJOR RP: download box v3 (dark card, circular progress ring, current resource name, stats)
+// MAJOR RP: download box v4 (no card, bottom of the screen: header, ring with percentage, resource name, stats, cancel pill)
 void CTransferBox::CreateMajorRPWindow()
 {
-    const float W = 400, H = 420, PAD = 20;
+    const float W = 400, H = 400;
     CVector2D   screenSize = m_GUI->GetResolution();
 
     auto image = [&](std::unique_ptr<CGUIStaticImage>& img, CGUIElement* parent, const char* file, float x, float y, float w, float h) {
@@ -57,50 +57,48 @@ void CTransferBox::CreateMajorRPWindow()
         img->SetProperty("MousePassThroughEnabled", "True");
     };
     auto label = [&](std::unique_ptr<CGUILabel>& lbl, CGUIElement* parent, const char* text, const char* font, float x, float y, float w, float h,
-                     unsigned char r, unsigned char g, unsigned char b, bool bCenter) {
+                     unsigned char r, unsigned char g, unsigned char b)
+    {
         lbl.reset(m_GUI->CreateLabel(parent, text));
         lbl->SetFont(font);
         lbl->SetPosition(CVector2D(x, y));
         lbl->SetSize(CVector2D(w, h));
         lbl->SetTextColor(r, g, b);
         lbl->SetVerticalAlign(CGUI_ALIGN_VERTICALCENTER);
-        if (bCenter)
-            lbl->SetHorizontalAlign(CGUI_ALIGN_HORIZONTALCENTER);
+        lbl->SetHorizontalAlign(CGUI_ALIGN_HORIZONTALCENTER);
     };
 
-    // Top-level card image (no window frame, so the rounded corners stay clean)
+    // Invisible container (fully transparent image) at the bottom centre of the screen
     m_card.reset(m_GUI->CreateStaticImage());
     m_card->SetFrameEnabled(false);
-    m_card->LoadFromFile("cgui\\images\\majorrp\\tb2_card.png");
-    m_card->SetPosition(CVector2D(screenSize.fX * 0.5f - W * 0.5f, screenSize.fY * 0.5f - H * 0.5f));
+    m_card->LoadFromFile("cgui\\images\\majorrp\\tb3_none.png");
+    m_card->SetPosition(CVector2D(screenSize.fX * 0.5f - W * 0.5f, screenSize.fY - H - 30));
     m_card->SetSize(CVector2D(W, H));
     m_card->SetAlwaysOnTop(true);
     m_card->SetProperty("MousePassThroughEnabled", "True");
     m_card->SetVisible(false);
 
-    label(m_title, m_card.get(), "DOWNLOADING", "majorrp-title-big", 0, 20, W, 30, 240, 234, 228, true);
-    label(m_subtitle, m_card.get(), "MAJOR RP server files", "default-normal", 0, 50, W, 20, 150, 140, 132, true);
+    // "DOWNLOADING" + "MAJOR RP server files" (image, with letter spacing and a soft shadow)
+    image(m_header, m_card.get(), "cgui\\images\\majorrp\\tb3_header.png", 0, 0, W, 74);
 
-    // Ring: pre-rendered frames every 2% (ring/r000.png ... r100.png), swapped as the download moves
-    const float R = 190;
-    image(m_ring, m_card.get(), "cgui\\images\\majorrp\\ring\\r000.png", (W - R) / 2, 82, R, R);
+    // Ring with the percentage drawn in: ring/p000.png ... p100.png, swapped as the download moves
+    const float R = 210;
+    image(m_ring, m_card.get(), "cgui\\images\\majorrp\\ring\\p000.png", (W - R) / 2, 78, R, R);
     m_ringFrame = 0;
-    label(m_percent, m_card.get(), "0%", "majorrp-big", (W - R) / 2, 82 + R / 2 - 30, R, 44, 255, 255, 255, true);
-    label(m_resourceName, m_card.get(), "", "default-bold-small", (W - 140) / 2, 82 + R / 2 + 14, 140, 18, 255, 140, 26, true);
+    label(m_resourceName, m_card.get(), "", "majorrp-stat", (W - 150) / 2, 78 + R / 2 + 18, 150, 18, 255, 140, 26);
 
     const char* keys[3] = {"DOWNLOADED", "SPEED", "TIME LEFT"};
-    const float boxW = (W - PAD * 2 - 20) / 3;
+    const float boxW = 101, gap = 16, x0 = (W - (boxW * 3 + gap * 2)) / 2;
     for (int i = 0; i < 3; ++i)
     {
-        const float x = PAD + i * (boxW + 10);
-        image(m_statBox[i], m_card.get(), "cgui\\images\\majorrp\\tb_stat.png", x, 290, boxW, 52);
-        label(m_statKey[i], m_card.get(), keys[i], "default-bold-small", x, 294, boxW, 16, 255, 140, 26, true);
-        label(m_statValue[i], m_card.get(), "-", "default-normal", x, 314, boxW, 22, 240, 234, 228, true);
+        const float x = x0 + i * (boxW + gap);
+        image(m_statBox[i], m_card.get(), "cgui\\images\\majorrp\\tb3_stat.png", x, 300, boxW, 46);
+        label(m_statKey[i], m_card.get(), keys[i], "default-small", x, 304, boxW, 16, 160, 160, 166);
+        label(m_statValue[i], m_card.get(), "-", "majorrp-stat", x, 321, boxW, 20, 255, 255, 255);
     }
 
-    // The mouse cursor is hidden while downloading, so cancelling works through ESC (menu -> Disconnect)
-    image(m_cancel, m_card.get(), "cgui\\images\\majorrp\\tb2_cancel.png", (W - 230) / 2, 360, 230, 38);
-    label(m_footer, m_card.get(), "PRESS ESC TO CANCEL", "default-bold-small", (W - 230) / 2, 360, 230, 38, 230, 222, 214, true);
+    // The mouse cursor is hidden while downloading: ESC opens the menu, where Disconnect cancels
+    image(m_cancel, m_card.get(), "cgui\\images\\majorrp\\tb3_cancel.png", (W - 122) / 2, 362, 122, 38);
 }
 
 void CTransferBox::SetCurrentName(const char* szName)
@@ -181,12 +179,11 @@ void CTransferBox::SetDownloadProgress(uint64_t downloadedSizeTotal)
     if (m_majorRP)
     {
         const double fraction = m_downloadTotalSize ? std::min(1.0, static_cast<double>(downloadedSizeTotal) / m_downloadTotalSize) : 0.0;
-        m_percent->SetText(SString("%d%%", static_cast<int>(fraction * 100)).c_str());
-        const int iFrame = std::min(100, static_cast<int>(fraction * 50) * 2);
+        const int    iFrame = std::min(100, static_cast<int>(fraction * 100));
         if (iFrame != m_ringFrame)
         {
             m_ringFrame = iFrame;
-            m_ring->LoadFromFile(SString("cgui\\images\\majorrp\\ring\\r%03d.png", iFrame));
+            m_ring->LoadFromFile(SString("cgui\\images\\majorrp\\ring\\p%03d.png", iFrame));
         }
 
         // Smoothed download speed
@@ -204,13 +201,19 @@ void CTransferBox::SetDownloadProgress(uint64_t downloadedSizeTotal)
             m_lastBytes = downloadedSizeTotal;
         }
 
-        m_statValue[0]->SetText(SString("%s / %s", GetDataUnit(downloadedSizeTotal).c_str(), GetDataUnit(m_downloadTotalSize).c_str()).c_str());
+        // "84 / 129 MB"
+        if (m_downloadTotalSize >= 1024 * 1024)
+            m_statValue[0]->SetText(
+                SString("%d / %d MB", static_cast<int>(downloadedSizeTotal >> 20), static_cast<int>((m_downloadTotalSize + (1 << 20) - 1) >> 20)).c_str());
+        else
+            m_statValue[0]->SetText(
+                SString("%d / %d KB", static_cast<int>(downloadedSizeTotal >> 10), static_cast<int>((m_downloadTotalSize + 1023) >> 10)).c_str());
         if (m_speed > 0)
         {
             m_statValue[1]->SetText(SString("%s/s", GetDataUnit(static_cast<uint64_t>(m_speed)).c_str()).c_str());
             const uint64_t left = (m_downloadTotalSize > downloadedSizeTotal) ? m_downloadTotalSize - downloadedSizeTotal : 0;
             const int      seconds = static_cast<int>(left / m_speed);
-            m_statValue[2]->SetText((seconds >= 60 ? SString("%dm %ds", seconds / 60, seconds % 60) : SString("%ds", seconds)).c_str());
+            m_statValue[2]->SetText(SString("%d:%02d", seconds / 60, seconds % 60).c_str());  // "0:07"
         }
         return;
     }

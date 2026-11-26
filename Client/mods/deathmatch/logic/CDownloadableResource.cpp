@@ -85,8 +85,12 @@ CChecksum CDownloadableResource::GenerateClientChecksum()
 
 CChecksum CDownloadableResource::GenerateClientChecksum(CBuffer& outFileData)
 {
-    if (outFileData.LoadFromFile(m_strName))
+    std::vector<char> data;
+    if (MajorRpCacheLoad(m_strName, data))  // MAJOR RP: unscrambled contents (the browser gets these bytes)
+    {
+        outFileData = CBuffer(data.data(), static_cast<uint>(data.size()));
         m_LastClientChecksum = CChecksum::GenerateChecksumFromBuffer(outFileData.GetData(), outFileData.GetSize());
+    }
     else
         m_LastClientChecksum = CChecksum();
 

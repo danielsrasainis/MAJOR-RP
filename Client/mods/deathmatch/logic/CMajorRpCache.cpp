@@ -22,8 +22,9 @@
 
 namespace
 {
-    const char   MAGIC[] = "MRPC\x01\x00\x00\x00";  // 8 byte header, version 1
-    const size_t MAGIC_LEN = 8;
+    using MajorRpCacheCore::HasMagic;
+    using MajorRpCacheCore::MAGIC;
+    using MajorRpCacheCore::MAGIC_LEN;
 
     unsigned char g_table[4096];
     bool          g_bTableReady = false;
@@ -46,47 +47,55 @@ namespace
                 strKey += SString("%02x", c);
             SetApplicationSetting("majorrp", "cache-key", strKey);
         }
-
-        // Expand the key into a 4 KB table with xorshift128
-        uint32_t s[4] = {};
-        for (int i = 0; i < 4; i++)
-            s[i] = strtoul(strKey.substr(i * 8, 8).c_str(), nullptr, 16) ^ (0x9E3779B9u * (i + 1));
-        for (int i = 0; i < 4; i++)
-            if (!s[i])
-                s[i] = 0x6D2B79F5u + i;
-        for (size_t i = 0; i < sizeof(g_table); i += 4)
-        {
-            uint32_t t = s[3];
-            t ^= t << 11;
-            t ^= t >> 8;
-            s[3] = s[2];
-            s[2] = s[1];
-            s[1] = s[0];
-            t ^= s[0] ^ (s[0] >> 19);
-            s[0] = t;
-            memcpy(&g_table[i], &t, 4);
-        }
+        MajorRpCacheCore::BuildTable(strKey, g_table);
         g_bTableReady = true;
     }
 
-    // XOR is its own inverse: the same call scrambles and unscrambles
     void Xor(char* pData, size_t uiSize)
     {
         InitTable();
-        for (size_t i = 0; i < uiSize; i++)
-            pData[i] ^= g_table[i & 4095] ^ static_cast<unsigned char>((i >> 12) * 0x9D);
+        MajorRpCacheCore::Xor(g_table, pData, uiSize);
     }
 
-    bool HasMagic(const char* pData, size_t uiSize)
+    // Read-only file in memory, so fileOpen/fileRead in scripts see the real contents of scrambled files
+    class CMemoryFile final : public CBinaryFileInterface
     {
-        return uiSize >= MAGIC_LEN && memcmp(pData, MAGIC, MAGIC_LEN) == 0;
-    }
+    public:
+        explicit CMemoryFile(SString&& data) : m_data(std::move(data)) {}
+        bool FOpen(const char*, const char*, bool) override { return true; }
+        void FClose() override {}
+        bool FEof() override { return m_pos >= static_cast<int>(m_data.size()); }
+        void FFlush() override {}
+        int  FTell() override { return m_pos; }
+        void FSeek(int iOffset, int iOrigin) override
+        {
+            const int iBase = iOrigin == SEEK_CUR ? m_pos : iOrigin == SEEK_END ? static_cast<int>(m_data.size()) : 0;
+            m_pos = std::max(0, std::min(static_cast<int>(m_data.size()), iBase + iOffset));
+        }
+        int FRead(void* pData, uint uiSize) override
+        {
+            const int iCount = std::max(0, std::min(static_cast<int>(uiSize), static_cast<int>(m_data.size()) - m_pos));
+            if (iCount)
+                memcpy(pData, m_data.data() + m_pos, iCount);
+            m_pos += iCount;
+            return iCount;
+        }
+        int FWrite(const void*, uint) override { return 0; }
+
+    private:
+        SString m_data;
+        int     m_pos = 0;
+    };
 }  // namespace
 
 bool MajorRpCacheIsScrambleType(const SString& strPath)
 {
     const SString strExt = ExtractExtension(strPath).ToLower();
-    return strExt == "lua" || strExt == "luac" || strExt == "txd" || strExt == "dff" || strExt == "col" || strExt == "ifp";
+    // scripts and models
+    if (strExt == "lua" || strExt == "luac" || strExt == "txd" || strExt == "dff" || strExt == "col" || strExt == "ifp")
+        return true;
+    // images (dxCreateTexture/dxDrawImage 2D, GUI images, browser pages) and sounds (playSound/playSound3D)
+    return strExt == "png" || strExt == "jpg" || strExt == "jpeg" || strExt == "bmp" || strExt == "mp3" || strExt == "ogg" || strExt == "wav";
 }
 
 bool MajorRpCacheLoad(const SString& strPath, SString& outData)
@@ -144,4 +153,20 @@ void MajorRpCacheScrambleFile(const SString& strPath)
     if (FileSave(strTemp, SStringX(MAGIC, MAGIC_LEN) + strData) && FileDelete(strPath) && FileRename(strTemp, strPath))
         return;
     FileDelete(strTemp);
+}
+
+CBinaryFileInterface* MajorRpCacheOpenForScript(const SString& strPath, bool bWrite)
+{
+    if (!MajorRpCacheIsScrambledFile(strPath))
+        return nullptr;
+    SString strData;
+    if (!MajorRpCacheLoad(strPath, strData))
+        return nullptr;
+    if (bWrite)
+    {
+        // A script wants to change the file: store it plain again and let the normal file code open it
+        FileSave(strPath, strData);
+        return nullptr;
+    }
+    return new CMemoryFile(std::move(strData));
 }

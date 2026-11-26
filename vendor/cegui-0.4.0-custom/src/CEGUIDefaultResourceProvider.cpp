@@ -28,6 +28,7 @@
 #include "CEGUIExceptions.h"
 
 #include <fstream>
+#include "../../../Shared/sdk/majorrp_cache_core.h"
 
 // Start of CEGUI namespace section
 namespace CEGUI
@@ -98,9 +99,18 @@ namespace CEGUI
 
         dataFile.close();
 
+        // MAJOR RP: unscramble files from the scrambled resource cache (GUI images, fonts) in memory
+        size_t dataSize = (size_t)size;
+        if (size_t skip = MajorRpCacheCore::UnscrambleInPlace(reinterpret_cast<char*>(buffer), dataSize,
+                                                              [] { return std::string(SharedUtil::GetApplicationSetting("majorrp", "cache-key")); }))
+        {
+            memmove(buffer, buffer + skip, dataSize - skip);
+            dataSize -= skip;
+        }
+
         //memcpy(container->getDataPtr(), buffer, size);
         output.setData(buffer);
-        output.setSize((size_t)size);
+        output.setSize(dataSize);
         //delete [] buffer;
     }
 
