@@ -78,6 +78,32 @@ jobs:
           name: MAJORRP-windows
           path: MAJORRP/
 
+  installer:
+    # MAJOR RP: player installer "MAJOR RP Setup.exe" (client only, no server), built from the win32 client
+    name: installer
+    needs: windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: Shared/installer
+      - uses: actions/download-artifact@v7
+        with:
+          name: MAJORRP-win32
+          path: client
+      - name: Build installer
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q nsis
+          rm -rf client/server   # players don't need the server
+          mkdir -p out
+          cd Shared/installer
+          makensis -V2 -DSRC_DIR="$GITHUB_WORKSPACE/client" -DOUT_FILE="$GITHUB_WORKSPACE/out/MAJOR RP Setup.exe" -DVERSION="1.0.0.${{ github.run_number }}" majorrp.nsi
+        shell: bash
+      - uses: actions/upload-artifact@v6
+        with:
+          name: MAJORRP-installer
+          path: out/
+
   linux:
     strategy:
       matrix:
