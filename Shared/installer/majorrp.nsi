@@ -178,6 +178,7 @@ Section "Uninstall"
     RMDir /r "$INSTDIR\mods"
     RMDir /r "$INSTDIR\skins"
     RMDir /r "$INSTDIR\redist"
+    RMDir /r "$INSTDIR\tests"   ; shipped by the first installer build by mistake
     Delete "$INSTDIR\*.exe"
     Delete "$INSTDIR\*.dll"
     RMDir "$INSTDIR"
