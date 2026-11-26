@@ -220,7 +220,7 @@ bool CResourceManager::ParseResourcePathInput(std::string strInput, CResource*& 
 bool CResourceManager::ParseMajorRpBuiltinPath(const std::string& strInput, std::string* pStrPath, std::string* pStrMetaPath)
 {
     SString strFile = SString(strInput).Replace("\\", "/");
-    if (strFile.length() <= 9 || !strFile.substr(0, 9).CompareI(":majorrp/"))
+    if (strFile.length() <= 9 || !SString(strFile.substr(0, 9)).CompareI(":majorrp/"))
         return false;
     strFile = strFile.substr(9);
     if (!IsValidFilePath(strFile.c_str()))
