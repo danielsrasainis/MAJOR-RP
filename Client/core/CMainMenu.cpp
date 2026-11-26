@@ -505,6 +505,7 @@ void CMainMenu::MajorRpAnimate()
         m_ulMajorRpStartTick = ulNow;
     const float fSeconds = (ulNow - m_ulMajorRpStartTick) / 1000.0f;
 
+#if MAJORRP_MENU_BG_PAN
     if (m_pBackground && m_vecBgBaseSize.fX > 0)
     {
         const float     fZoom = 1.07f;
@@ -515,6 +516,7 @@ void CMainMenu::MajorRpAnimate()
         m_pBackground->SetSize(size, false);
         m_pBackground->SetPosition(CVector2D(m_vecBgBasePos.fX - extra.fX * (0.5f + 0.5f * fx), m_vecBgBasePos.fY - extra.fY * (0.5f + 0.5f * fy)), false);
     }
+#endif
 
     if (m_pLogo && fSeconds < 2.0f)
     {

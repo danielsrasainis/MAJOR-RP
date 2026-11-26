@@ -62,3 +62,6 @@
 
 // Main menu v2: pill buttons with hover highlight, hover/click sounds, slow background pan, logo fade-in
 #define MAJORRP_MENU_V2 1
+
+// 1 = slow zoom/pan of the menu background (menu v2). Off: Danex prefers a still background.
+#define MAJORRP_MENU_BG_PAN 0
