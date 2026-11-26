@@ -33,6 +33,8 @@ CProxyDirectInputDevice8::CProxyDirectInputDevice8(IDirectInputDevice8A* pDevice
         if (uiType == DI8DEVTYPE_GAMEPAD || uiType == DI8DEVTYPE_JOYSTICK)
             m_bDropDataIfInputGoesToGUI = false;
 
+        m_bIsKeyboard = uiType == DI8DEVTYPE_KEYBOARD;  // MAJOR RP
+
         WriteDebugEvent(SString("   CProxyDirectInputDevice8 Device:%08x  Type:0x%x  SubType:0x%x  HID:0x%x  ProductName:%s", pDevice, uiType, uiSubType, uiHid,
                                 didi.tszProductName));
     }
@@ -170,7 +172,12 @@ HRESULT CProxyDirectInputDevice8::SetCooperativeLevel(HWND a, DWORD b)
 {
     HRESULT hResult;
 
-    hResult = m_pDevice->SetCooperativeLevel(a, b /*&(~DISCL_EXCLUSIVE|DISCL_NONEXCLUSIVE)*/);
+    // MAJOR RP: GTA takes the keyboard in exclusive mode, which swallows Print Screen (no Windows
+    // screenshot / Snipping Tool). Non-exclusive keeps all game input and lets Windows see that key.
+    if (m_bIsKeyboard && (b & DISCL_EXCLUSIVE))
+        b = (b & ~DISCL_EXCLUSIVE) | DISCL_NONEXCLUSIVE;
+
+    hResult = m_pDevice->SetCooperativeLevel(a, b);
 
     return hResult;
 }
