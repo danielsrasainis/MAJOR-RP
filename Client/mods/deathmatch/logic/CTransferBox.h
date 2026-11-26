@@ -33,6 +33,7 @@ public:
     bool IsVisible() const { return m_visible[TB_VISIBILITY_MTA]; }
 
     void SetDownloadProgress(uint64_t downloadedSizeTotal);
+    void SetCurrentName(const char* szName);  // MAJOR RP: resource being downloaded
 
     void     AddToDownloadTotalSize(uint64 bytes) { m_downloadTotalSize += bytes; }
     uint64_t GetDownloadTotalSize() const { return m_downloadTotalSize; }
@@ -63,9 +64,11 @@ private:
     // MAJOR RP: modern download box
     bool                                            m_majorRP = false;
     std::unique_ptr<CGUIStaticImage>                m_card;
-    std::unique_ptr<CGUIStaticImage>                m_logo;
-    std::unique_ptr<CGUIStaticImage>                m_track;
-    std::unique_ptr<CGUIStaticImage>                m_fill;
+    std::unique_ptr<CGUIStaticImage>                m_ring;
+    std::unique_ptr<CGUIStaticImage>                m_cancel;
+    std::unique_ptr<CGUILabel>                      m_resourceName;
+    std::string                                     m_currentName;
+    int                                             m_ringFrame = -1;
     std::unique_ptr<CGUILabel>                      m_title;
     std::unique_ptr<CGUILabel>                      m_subtitle;
     std::unique_ptr<CGUILabel>                      m_percent;
@@ -73,7 +76,6 @@ private:
     std::array<std::unique_ptr<CGUIStaticImage>, 3> m_statBox;
     std::array<std::unique_ptr<CGUILabel>, 3>       m_statKey;
     std::array<std::unique_ptr<CGUILabel>, 3>       m_statValue;
-    float                                           m_trackWidth = 0;
     uint64_t                                        m_lastBytes = 0;
     long long                                       m_lastTick = 0;
     double                                          m_speed = 0;  // bytes per second (smoothed)

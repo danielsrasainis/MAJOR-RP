@@ -148,6 +148,8 @@ void CResourceFileDownloadManager::DoPulse()
     }
 
     // Update progress box
+    if (!m_ActiveFileDownloadList.empty() && m_ActiveFileDownloadList.front()->GetResource())
+        GetTransferBox()->SetCurrentName(m_ActiveFileDownloadList.front()->GetResource()->GetName());  // MAJOR RP
     GetTransferBox()->SetDownloadProgress(uiDownloadedSizeTotal);
     GetTransferBox()->DoPulse();
 
