@@ -136,13 +136,13 @@ Section "MAJOR RP (required)" SecCore
     WriteRegStr HKLM "${REG_VER_KEY}" "Last Install Location" "$INSTDIR"
 
     Delete "$INSTDIR\Uninstall MAJOR RP.exe"   ; old name from the first installer build
-    WriteUninstaller "$INSTDIR\Uninstall_MRP.exe"
+    WriteUninstaller "$INSTDIR\Uninstall.exe"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "${PRODUCT_NAME}"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayIcon" "$INSTDIR\${CLIENT_EXE}"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayVersion" "${VERSION}"
     WriteRegStr HKLM "${UNINST_KEY}" "Publisher" "MAJOR RP"
     WriteRegStr HKLM "${UNINST_KEY}" "InstallLocation" "$INSTDIR"
-    WriteRegStr HKLM "${UNINST_KEY}" "UninstallString" '"$INSTDIR\Uninstall_MRP.exe"'
+    WriteRegStr HKLM "${UNINST_KEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
     WriteRegDWORD HKLM "${UNINST_KEY}" "NoModify" 1
     WriteRegDWORD HKLM "${UNINST_KEY}" "NoRepair" 1
     ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
@@ -166,7 +166,7 @@ Section "Start menu shortcuts" SecStartMenu
     CreateDirectory "$SMPROGRAMS\MAJOR RP"
     CreateShortcut "$SMPROGRAMS\MAJOR RP\MAJOR RP.lnk" "$INSTDIR\${CLIENT_EXE}" "" "$INSTDIR\${CLIENT_EXE}" 0
     Delete "$SMPROGRAMS\MAJOR RP\Uninstall MAJOR RP.lnk"   ; old name from the first installer build
-    CreateShortcut "$SMPROGRAMS\MAJOR RP\Uninstall_MRP.lnk" "$INSTDIR\Uninstall_MRP.exe"
+    CreateShortcut "$SMPROGRAMS\MAJOR RP\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 SectionEnd
 
 ; Off by default: GTA SA players almost always have DirectX 9 already, and this needs internet.
