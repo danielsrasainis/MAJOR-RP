@@ -40,6 +40,8 @@
 #include <windowsx.h>
 #include "CServerInfo.h"
 #include "majorrp_config.h"
+void MajorRpGuardPulse();
+void MajorRpGuardReset();
 #include "CClientPed.h"
 
 SString StringZeroPadout(const SString& strInput, uint uiPadoutSize)
@@ -423,6 +425,7 @@ CClientGame::CClientGame(bool bLocalPlay) : m_ServerInfo(new CServerInfo())
 
 CClientGame::~CClientGame()
 {
+    MajorRpGuardReset();  // MAJOR RP: fresh reports for the next server
     m_bBeingDeleted = true;
     // Remove active projectile references to local player
     if (auto pLocalPlayer = g_pClientGame->GetLocalPlayer())
@@ -1358,6 +1361,9 @@ void CClientGame::DoPulses()
     }
     else if (m_Status == CClientGame::STATUS_JOINED)
     {
+        // MAJOR RP: report injected DLLs / cheat tools to the server's anticheat resource
+        MajorRpGuardPulse();
+
         // Pulse DownloadFiles if we're transferring stuff
         GetResourceFileDownloadManager()->DoPulse();
         DownloadSingularResourceFiles();
@@ -7407,12 +7413,27 @@ std::uint8_t CClientGame::TryGetCurrentWeapon(CClientPlayer* player)
 #include <bcrypt.h>
 #pragma comment(lib, "bcrypt.lib")
 
+// Writes why loading stopped to the F8 console (and console.log) so problems can be found
+static void MajorRpModelLog(const char* szText)
+{
+    g_pCore->GetConsole()->Printf("[MAJOR RP] Built-in models: %s", szText);
+    AddReportLog(9851, SString("MAJOR RP built-in models: %s", szText));
+}
+
 static bool MajorRpDecryptPack(const SString& strFile, std::map<SString, SString>& outFiles)
 {
 #if MAJORRP_MODELS_HAVE_KEY
     SString strData;
-    if (!FileLoad(strFile, strData) || strData.length() < 5 + 16 + 16 || strData.substr(0, 5) != "MRPK1")
+    if (!FileLoad(strFile, strData))
+    {
+        MajorRpModelLog(SString("pack not found (%s)", *strFile));
         return false;
+    }
+    if (strData.length() < 5 + 16 + 16 || strData.substr(0, 5) != "MRPK1")
+    {
+        MajorRpModelLog("pack is damaged");
+        return false;
+    }
 
     unsigned char key[32];
     for (int i = 0; i < 32; i++)
@@ -7435,7 +7456,10 @@ static bool MajorRpDecryptPack(const SString& strFile, std::map<SString, SString
         BCryptCloseAlgorithmProvider(hAlg, 0);
     SecureZeroMemory(key, sizeof(key));
     if (!bOk)
+    {
+        MajorRpModelLog("could not unlock the pack (it belongs to a different build; copy MTA\\models from the same download)");
         return false;
+    }
 
     // Entries: [u32 name length][name][u32 data length][data] ...
     size_t pos = 0;
@@ -7444,19 +7468,27 @@ static bool MajorRpDecryptPack(const SString& strFile, std::map<SString, SString
         uint32_t uiNameLen = *reinterpret_cast<const uint32_t*>(&plain[pos]);
         pos += 4;
         if (pos + uiNameLen + 4 > ulPlain)
+        {
+            MajorRpModelLog("pack contents are damaged");
             return false;
+        }
         SString strName(reinterpret_cast<const char*>(&plain[pos]), uiNameLen);
         pos += uiNameLen;
         uint32_t uiDataLen = *reinterpret_cast<const uint32_t*>(&plain[pos]);
         pos += 4;
         if (pos + uiDataLen > ulPlain)
+        {
+            MajorRpModelLog("pack contents are damaged");
             return false;
+        }
         outFiles[strName.ToLower()] = SString(reinterpret_cast<const char*>(&plain[pos]), uiDataLen);
         pos += uiDataLen;
     }
     SecureZeroMemory(plain.data(), plain.size());
+    MajorRpModelLog(SString("pack unlocked, %u files", (uint)outFiles.size()));
     return true;
 #else
+    MajorRpModelLog("this build has no model key (built without the MAJORRP_MODELS_PRIVATE_KEY secret)");
     return false;
 #endif
 }
@@ -7464,6 +7496,7 @@ static bool MajorRpDecryptPack(const SString& strFile, std::map<SString, SString
 void CClientGame::MajorRpLoadBuiltInModels()
 {
     std::map<SString, SString> files;
+    MajorRpModelLog("loading");
     if (!MajorRpDecryptPack(CalcMTASAPath(PathJoin("MTA", "models", "models.mrp")), files))
         return;
 
@@ -7484,12 +7517,17 @@ void CClientGame::MajorRpLoadBuiltInModels()
             continue;
         const unsigned short usModel = static_cast<unsigned short>(iModel);
         bool                 bOk = true;
+        SString              strWhy;
 
         auto itTxd = files.find(strName + ".txd");
         if (itTxd != files.end())
         {
             CClientTXD* pTXD = new CClientTXD(m_pManager, INVALID_ELEMENT_ID);
-            if (pTXD->Load(true, itTxd->second, true) && pTXD->Import(usModel))
+            if (!pTXD->Load(true, itTxd->second, true))
+                strWhy += " txd-load";
+            else if (!pTXD->Import(usModel))
+                strWhy += " txd-import";
+            if (strWhy.empty())
                 pTXD->SetParent(m_pRootEntity);
             else
             {
@@ -7502,7 +7540,12 @@ void CClientGame::MajorRpLoadBuiltInModels()
         if (itCol != files.end() && CClientColModelManager::IsReplacableModel(usModel))
         {
             CClientColModel* pCol = new CClientColModel(m_pManager, INVALID_ELEMENT_ID);
-            if (pCol->Load(true, itCol->second) && pCol->Replace(usModel))
+            const size_t     uiBefore = strWhy.length();
+            if (!pCol->Load(true, itCol->second))
+                strWhy += " col-load";
+            else if (!pCol->Replace(usModel))
+                strWhy += " col-replace";
+            if (strWhy.length() == uiBefore)
                 pCol->SetParent(m_pRootEntity);
             else
             {
@@ -7522,15 +7565,17 @@ void CClientGame::MajorRpLoadBuiltInModels()
             {
                 delete pDFF;
                 bOk = false;
+                strWhy += " dff-replace";
             }
         }
         else
         {
             delete pDFF;
             bOk = false;
+            strWhy += itDff == files.end() ? " dff-missing" : " dff-load";
         }
 
         AddReportLog(9850, SString("MAJOR RP built-in model %u: %s", usModel, bOk ? "ok" : "failed"));
-        g_pCore->GetConsole()->Printf("Built-in model %u %s", usModel, bOk ? "loaded" : "failed to load");
+        MajorRpModelLog(SString("model %u %s%s", usModel, bOk ? "loaded" : "failed:", *strWhy));
     }
 }
