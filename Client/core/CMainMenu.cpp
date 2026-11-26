@@ -1227,7 +1227,7 @@ sMenuItem* CMainMenu::CreateItem(unsigned char menuType, const char* szFilename,
     s->image = pImage;
 #if MAJORRP_MENU_V2
     // Highlighted version as a child that always covers the button; faded in on hover
-    SString strHover = SString(szFilename).Replace(".png", "_hover.png");
+    SString strHover = SStringX(szFilename).Replace(".png", "_hover.png");
     CGUIStaticImage* pHover = reinterpret_cast<CGUIStaticImage*>(m_pManager->CreateStaticImage(pImage));
     auto pLanguage = g_pLocalization->GetLanguage("en_US");
     if (pHover->LoadFromFile(PathJoin(g_pCore->GetLocalization()->GetLanguageDirectory(pLanguage), strHover)))
