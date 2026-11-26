@@ -125,6 +125,8 @@ FunctionEnd
 Section "MAJOR RP (required)" SecCore
     SectionIn RO
     SetOutPath "$INSTDIR"
+    ; Browser languages: the build ships English only, so drop the 52 languages an older install left behind
+    RMDir /r "$INSTDIR\MTA\cef\locales"
     ; Whole client folder from the CI build (MAJOR RP.exe, MTA, mods, skins, ...). Server not included.
     File /r "${SRC_DIR}/*.*"
 
@@ -136,6 +138,16 @@ Section "MAJOR RP (required)" SecCore
     WriteRegStr HKLM "${REG_VER_KEY}" "Last Install Location" "$INSTDIR"
 
     Delete "$INSTDIR\Uninstall MAJOR RP.exe"   ; old name from the first installer build
+
+    ; Leftovers from older builds (installing over an old version does not remove them by itself)
+    Delete "$INSTDIR\MTA\netc_d.dll"
+    Delete "$INSTDIR\MTA\cgui\images\chat.png"
+    Delete "$INSTDIR\MTA\cgui\images\chatinput.png"
+    RMDir /r "$INSTDIR\MTA\cgui\images\transferset"
+    Delete "$INSTDIR\MTA\locale\en_US\menu_browse_servers.png"
+    Delete "$INSTDIR\MTA\locale\en_US\menu_host_game.png"
+    Delete "$INSTDIR\MTA\locale\en_US\menu_map_editor.png"
+    Delete "$INSTDIR\MTA\locale\en_US\menu_quick_connect.png"
     WriteUninstaller "$INSTDIR\Uninstall.exe"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "${PRODUCT_NAME}"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayIcon" "$INSTDIR\${CLIENT_EXE}"

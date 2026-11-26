@@ -106,6 +106,8 @@ jobs:
         run: |
           sudo apt-get update -q && sudo apt-get install -y -q nsis
           rm -rf client/server client/tests   # players don't need the server or the developer unit tests
+          rm -f client/MTA/netc_d.dll         # debug copy of netc.dll, the release client never loads it
+          find client/MTA/cef/locales -type f ! -name 'en-US*' -delete   # browser: English only
           mkdir -p out
           cd Shared/installer
           makensis -V2 -DSRC_DIR="$GITHUB_WORKSPACE/client" -DOUT_FILE="$GITHUB_WORKSPACE/out/MRP_installer.exe" -DVERSION="1.0.0.${{ github.run_number }}" majorrp.nsi
