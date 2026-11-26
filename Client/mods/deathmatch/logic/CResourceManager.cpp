@@ -279,7 +279,7 @@ void CResourceManager::ValidateResourceFile(const SString& strInFilename, const 
             if (buffer)
                 checksum = CChecksum::GenerateChecksumFromBuffer(buffer, bufferSize);
             else
-                checksum = CChecksum::GenerateChecksumFromFileUnsafe(strInFilename);
+                checksum = MajorRpCacheChecksum(strInFilename);  // MAJOR RP: unscrambled contents
             if (checksum != pResourceFile->GetServerChecksum())
             {
                 char szMd5[33];

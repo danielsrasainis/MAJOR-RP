@@ -135,6 +135,17 @@ bool CClientDFF::LoadFromFile(SString filePath)
     if (!FileExists(filePath))
         return false;
 
+    // MAJOR RP: a scrambled cache file is unscrambled into memory and used like raw data
+    if (MajorRpCacheIsScrambledFile(filePath))
+    {
+        SString buffer;
+        if (!MajorRpCacheLoad(filePath, buffer))
+            return false;
+        g_pClientGame->GetResourceManager()->ValidateResourceFile(filePath, buffer.data(), buffer.size());
+        m_bIsRawData = true;
+        return LoadFromBuffer(std::move(buffer));
+    }
+
     if (!g_pCore->GetNetwork()->CheckFile("dff", filePath))
         return false;
 

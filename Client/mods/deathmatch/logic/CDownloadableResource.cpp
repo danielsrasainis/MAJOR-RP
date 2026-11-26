@@ -74,7 +74,7 @@ CChecksum CDownloadableResource::GenerateClientChecksum()
     }
 
     long long startMs = GetTickCount64_();
-    m_LastClientChecksum = CChecksum::GenerateChecksumFromFileUnsafe(m_strName);
+    m_LastClientChecksum = MajorRpCacheChecksum(m_strName);  // MAJOR RP: checksum of the unscrambled contents
     m_bClientChecksumVerified = true;
 
     if (s_bChecksumBatchActive)

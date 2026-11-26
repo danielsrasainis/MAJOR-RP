@@ -44,7 +44,15 @@ void CFileReader::SkipBytes(const std::uint32_t u32BytesToSkip)
 
 bool CFileReader::LoadFromFile(SString filePath) noexcept
 {
-    return FileLoad(std::nothrow, filePath, m_buffer);
+    // MAJOR RP: unscrambles cache files (.ifp) in memory
+    try
+    {
+        return MajorRpCacheLoad(filePath, m_buffer);
+    }
+    catch (...)
+    {
+        return false;
+    }
 }
 
 bool CFileReader::LoadFromBuffer(SString buffer) noexcept

@@ -55,7 +55,7 @@ bool CClientColModel::LoadFromFile(SString filePath)
 {
     SString buffer;
 
-    if (!FileLoad(std::nothrow, filePath, buffer))
+    if (!MajorRpCacheLoad(filePath, buffer))  // MAJOR RP: unscrambles cache files in memory
         return false;
 
     g_pClientGame->GetResourceManager()->ValidateResourceFile(filePath, buffer.data(), buffer.size());

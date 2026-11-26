@@ -170,4 +170,5 @@
 #include "logic/CResource.h"
 #include "logic/CStaticFunctionDefinitions.h"
 #include "logic/CResourceFileDownloadManager.h"
+#include "logic/CMajorRpCache.h"  // MAJOR RP: scrambled resource cache
 #include "version.h"

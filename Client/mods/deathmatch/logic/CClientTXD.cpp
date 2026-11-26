@@ -154,6 +154,17 @@ bool CClientTXD::IsImportableModel(unsigned short usModelID)
 
 bool CClientTXD::LoadFromFile(SString filePath)
 {
+    // MAJOR RP: a scrambled cache file is unscrambled into memory and used like raw data
+    if (MajorRpCacheIsScrambledFile(filePath))
+    {
+        SString buffer;
+        if (!MajorRpCacheLoad(filePath, buffer))
+            return false;
+        g_pClientGame->GetResourceManager()->ValidateResourceFile(filePath, buffer.data(), buffer.size());
+        m_bIsRawData = true;
+        return LoadFromBuffer(std::move(buffer));
+    }
+
     m_strFilename = std::move(filePath);
 
     SString strUseFilename;

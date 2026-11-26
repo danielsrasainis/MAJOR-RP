@@ -360,7 +360,7 @@ void CResource::Load()
         {
             // Load the file
             std::vector<char> buffer;
-            const bool        bLoaded = FileLoad(pResourceFile->GetName(), buffer);
+            const bool        bLoaded = MajorRpCacheLoad(pResourceFile->GetName(), buffer);  // MAJOR RP: unscrambled in memory
             const char*       pBufferData = buffer.empty() ? nullptr : &buffer.at(0);
 
             DECLARE_PROFILER_SECTION(OnPreLoadScript)
@@ -371,7 +371,10 @@ void CResource::Load()
                 pResourceFile->SetLastClientChecksum(checksum);
 
                 if (checksum == pResourceFile->GetServerChecksum())
+                {
                     m_pLuaVM->LoadScriptFromBuffer(pBufferData, buffer.size(), pResourceFile->GetName());
+                    MajorRpCacheScrambleFile(pResourceFile->GetName());  // MAJOR RP: store it scrambled from now on
+                }
                 else
                     HandleDownloadedFileTrouble(pResourceFile, true);
             }
@@ -388,6 +391,8 @@ void CResource::Load()
             {
                 HandleDownloadedFileTrouble(pResourceFile, false);
             }
+            else
+                MajorRpCacheScrambleFile(pResourceFile->GetName());  // MAJOR RP: models stored scrambled from now on
         }
     }
 
