@@ -52,7 +52,7 @@ Var GTA_DIR
 
 ; Look: MAJOR RP icon (same file as MAJOR RP.exe) and branded side/header pictures
 !define MUI_ICON   "mta.ico"
-!define MUI_UNICON "mta.ico"
+!define MUI_UNICON "uninstall.ico"  ; greyed MAJOR RP icon (Danex, 2026-11-26)
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
 !define MUI_HEADERIMAGE_BITMAP          "majorrp\header.bmp"
