@@ -7472,7 +7472,8 @@ static bool MajorRpDecryptPack(const SString& strFile, std::map<SString, SString
             MajorRpModelLog("pack contents are damaged");
             return false;
         }
-        SString strName(reinterpret_cast<const char*>(&plain[pos]), uiNameLen);
+        // std::string(ptr, len): SString(const char*, ...) would treat the bytes as a printf format
+        SString strName = std::string(reinterpret_cast<const char*>(&plain[pos]), uiNameLen);
         pos += uiNameLen;
         uint32_t uiDataLen = *reinterpret_cast<const uint32_t*>(&plain[pos]);
         pos += 4;
@@ -7481,7 +7482,7 @@ static bool MajorRpDecryptPack(const SString& strFile, std::map<SString, SString
             MajorRpModelLog("pack contents are damaged");
             return false;
         }
-        outFiles[strName.ToLower()] = SString(reinterpret_cast<const char*>(&plain[pos]), uiDataLen);
+        outFiles[strName.ToLower()] = std::string(reinterpret_cast<const char*>(&plain[pos]), uiDataLen);
         pos += uiDataLen;
     }
     SecureZeroMemory(plain.data(), plain.size());
