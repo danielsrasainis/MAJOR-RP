@@ -24,7 +24,6 @@ class CTransferBox
 {
 public:
     explicit CTransferBox(TransferBoxType transferType);
-    ~CTransferBox() { MajorRpStopBackdrop(); }  // MAJOR RP: give the HUD back
 
     void Show();
     void Hide();
@@ -35,8 +34,6 @@ public:
 
     void SetDownloadProgress(uint64_t downloadedSizeTotal);
     void SetCurrentName(const char* szName);  // MAJOR RP: resource being downloaded
-    void MajorRpBackdropPulse();
-    void MajorRpStopBackdrop() const;
 
     void     AddToDownloadTotalSize(uint64 bytes) { m_downloadTotalSize += bytes; }
     uint64_t GetDownloadTotalSize() const { return m_downloadTotalSize; }
@@ -67,11 +64,6 @@ private:
     // MAJOR RP: modern download box
     bool                                            m_majorRP = false;
     std::unique_ptr<CGUIStaticImage>                m_card;
-    mutable bool                                    m_backdropActive = false;
-    CVector                                         m_camPos;
-    CVector                                         m_camLook;
-    float                                           m_slide = 0;
-    long long                                       m_backdropStartTick = 0;
     std::unique_ptr<CGUIStaticImage>                m_header;
     std::unique_ptr<CGUIStaticImage>                m_ring;
     std::unique_ptr<CGUIStaticImage>                m_cancel;

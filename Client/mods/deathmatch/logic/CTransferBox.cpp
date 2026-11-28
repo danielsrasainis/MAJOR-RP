@@ -101,40 +101,6 @@ void CTransferBox::CreateMajorRPWindow()
     image(m_cancel, m_card.get(), "cgui\\images\\majorrp\\tb3_cancel.png", (W - 122) / 2, 362, 122, 38);
 }
 
-// MAJOR RP: while the server files download after joining, a black screen behind the download box (it also
-// covers the radar, HUD and zone name). The camera waits at account/c_login.lua loginScreens[1] so the login scene is ready.
-void CTransferBox::MajorRpBackdropPulse()
-{
-    if (!m_backdropActive)
-    {
-        m_backdropActive = true;
-        m_camPos = CVector(46.309753417969f, -1698.5400390625f, 51.138675689697f);
-        m_camLook = CVector(118.90101623535f, -1766.6478271484f, 41.555904388428f);
-        m_slide = 0;
-        m_backdropStartTick = GetTickCount64_();
-        // Put the (not yet spawned) local player near the view so the area streams in, like the login does
-        if (CClientPlayer* pLocal = g_pClientGame->GetLocalPlayer())
-            pLocal->SetPosition(CVector(118.9f, -1766.6f, 4.0f));
-    }
-
-    // Camera held at the login panel's start point so that area is loaded when the login shows
-    CStaticFunctionDefinitions::SetCameraMatrix(m_camPos, &m_camLook, 0, 70);
-
-    // Plain black screen behind the download box until the login panel shows (Danex, 2026-11-28): the world
-    // keeps streaming in behind it at the login camera spot, but nobody sees the half-loaded city
-    const CVector2D screen = m_GUI->GetResolution();
-    g_pCore->GetGraphics()->DrawRectQueued(0, 0, screen.fX, screen.fY, 0xFF000000, false);
-}
-
-void CTransferBox::MajorRpStopBackdrop() const
-{
-    if (!m_backdropActive)
-        return;
-    m_backdropActive = false;
-    // The HUD is never touched here: the black screen covers it, and the server's scripts (hud, account)
-    // have already set their own HUD by the time the download box closes
-}
-
 void CTransferBox::SetCurrentName(const char* szName)
 {
     if (!m_majorRP || !szName || m_currentName == szName)
@@ -262,11 +228,7 @@ void CTransferBox::SetDownloadProgress(uint64_t downloadedSizeTotal)
 void CTransferBox::DoPulse()
 {
     if (m_majorRP)
-    {
-        if (m_card->IsVisible())
-            MajorRpBackdropPulse();
-        return;
-    }
+        return;  // stock MTA camera and radar behind the download box (Danex, 2026-11-28)
 
     if (m_iconTimer.Get() >= 50)
     {
@@ -312,8 +274,6 @@ void CTransferBox::UpdateWindowVisibility() const
     bool visible = m_visible.all() || (m_visible[TB_VISIBILITY_MTA] && m_alwaysVisible);
     if (m_majorRP)
     {
-        if (!visible)
-            MajorRpStopBackdrop();
         m_card->SetVisible(visible);
         if (visible)
             m_card->BringToFront();
