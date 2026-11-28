@@ -23,7 +23,7 @@ RequestExecutionLevel admin   ; writes to Program Files and HKLM, like the stock
 !endif
 
 !define PRODUCT_NAME   "MAJOR RP"
-!define CLIENT_EXE     "MAJOR RP.exe"
+!define CLIENT_EXE     "Launcher.exe"  ; MAJOR RP: was "MAJOR RP.exe" (renamed 2026-11-28)
 ; Same keys the client uses (Shared/sdk/majorrp_config.h MAJORRP_REGISTRY_PATH, MTA version 1.7)
 !define REG_ROOT_KEY   "Software\MAJOR RP All"
 !define REG_COMMON_KEY "Software\MAJOR RP All\Common"
@@ -386,7 +386,7 @@ Section "MAJOR RP (required)" SecCore
     SetOutPath "$INSTDIR"
     ; Browser languages: the build ships English only, so drop the 52 languages an older install left behind
     RMDir /r "$INSTDIR\MTA\cef\locales"
-    ; Whole client folder from the CI build (MAJOR RP.exe, MTA, mods, skins, ...). Server not included.
+    ; Whole client folder from the CI build (Launcher.exe, MTA, mods, skins, ...). Server not included.
     File /r "${SRC_DIR}/*.*"
 
     ; The game writes settings, logs and downloaded server files into its own folder,
@@ -397,6 +397,7 @@ Section "MAJOR RP (required)" SecCore
     WriteRegStr HKLM "${REG_VER_KEY}" "Last Install Location" "$INSTDIR"
 
     Delete "$INSTDIR\Uninstall MAJOR RP.exe"   ; old name from the first installer build
+    Delete "$INSTDIR\MAJOR RP.exe"             ; game exe before it was renamed to Launcher.exe
 
     ; Leftovers from older builds (installing over an old version does not remove them by itself)
     Delete "$INSTDIR\MTA\netc_d.dll"

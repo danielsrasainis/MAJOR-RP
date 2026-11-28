@@ -361,15 +361,22 @@ std::vector<DWORD> GetOtherMTAProcessList()
 {
     std::vector<DWORD> result;
 
+    // MAJOR RP: the exe is called "Launcher.exe", a common name (the Rockstar Games Launcher uses it too),
+    // so only count processes started from our own install folder. Never match by name alone.
+    const SString strOurExe = PathConform(PathJoin(GetMTASAPath(), MTA_EXE_NAME));
     for (auto processId : MyEnumProcesses())
     {
         SString strPathFilename = GetProcessPathFilename(processId);
-        if (strPathFilename.EndsWith(MTA_EXE_NAME))
+        if (!strPathFilename.empty() && PathConform(strPathFilename).CompareI(strOurExe))
             ListAddUnique(result, processId);
     }
 
     if (DWORD processId = FindProcessId(MTA_EXE_NAME))
-        ListAddUnique(result, processId);
+    {
+        SString strPathFilename = GetProcessPathFilename(processId);
+        if (!strPathFilename.empty() && PathConform(strPathFilename).CompareI(strOurExe))
+            ListAddUnique(result, processId);
+    }
 
     // Ignore this process
     ListRemove(result, GetCurrentProcessId());

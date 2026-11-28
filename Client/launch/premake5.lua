@@ -1,7 +1,7 @@
 project "Client Launcher"
 	language "C++"
 	kind "WindowedApp"
-	targetname "MAJOR RP"
+	targetname "Launcher"  -- MAJOR RP: installed as Launcher.exe (Danex, 2026-11-28)
 	targetdir(buildpath("."))
 	debugdir(buildpath("."))
 	clangtidy "On"

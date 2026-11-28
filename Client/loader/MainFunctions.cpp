@@ -866,7 +866,7 @@ void ConfigureWerDumpPath()
     // if WerRegisterAppLocalDump failed.
     // Note: WER LocalDumps only reads from HKLM, not HKCU (per Microsoft documentation).
     // Without admin privileges, we cannot update HKLM and stale entries from previous installs may persist.
-    const wchar_t* exeNames[] = {L"gta_sa.exe", loaderConfigured ? nullptr : L"MAJOR RP.exe"};
+    const wchar_t* exeNames[] = {L"gta_sa.exe", loaderConfigured ? nullptr : L"Launcher.exe"};
 
     for (const wchar_t* exeName : exeNames)
     {
@@ -1186,7 +1186,7 @@ void HandleDuplicateLaunching()
                 const SString strMessage =
                     _("Trouble restarting MTA:SA\n\n"
                       "If the problem persists, open Task Manager and\n"
-                      "stop the 'gta_sa.exe' and 'MAJOR RP.exe' processes\n\n\n"
+                      "stop the 'gta_sa.exe' and 'Launcher.exe' processes\n\n\n"
                       "Try to launch MTA:SA again?");
 
                 if (MessageBoxUTF8(0, strMessage, _("Error") + _E("CL04"), MB_ICONWARNING | MB_YESNO | MB_TOPMOST) == IDYES)
