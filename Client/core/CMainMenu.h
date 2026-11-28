@@ -105,6 +105,8 @@ private:
     void                          MajorRpUpdateConnectState();
     void                          MajorRpPlaceStatusLabel();
     CGUIStaticImage*              m_pMajorRpConnecting = nullptr;
+    CGUIStaticImage*              m_pMajorRpEntering = nullptr;
+    bool                          m_bMajorRpEnteringShown = false;
     std::vector<CGUIStaticImage*> m_majorRpSpinner;
     CGUILabel*                    m_pMajorRpStatus = nullptr;
     bool                          m_bMajorRpConnectingShown = false;

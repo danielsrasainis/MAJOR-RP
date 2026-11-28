@@ -685,7 +685,9 @@ bool CClientGame::StartGame(const char* szNick, const char* szPassword, eServerT
             g_pCore->GetConsole()->SetVisible(false);
 
         // Display the status box
+#if !MAJORRP_PLAY_CONNECTING_STATE  // MAJOR RP: the PLAY button shows this state instead
         g_pCore->ShowMessageBox(_("CONNECTING"), _("Entering the game ..."), MB_ICON_INFO);
+#endif
 
         // Send the initial data to the server
         NetBitStreamInterface* pBitStream = g_pNet->AllocateNetBitStream();

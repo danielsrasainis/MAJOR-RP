@@ -237,6 +237,20 @@ CMainMenu::CMainMenu(CGUI* pManager)
             m_pMajorRpConnecting->SetSize(CVector2D(1, 1), true);
             m_pMajorRpConnecting->SetProperty("MousePassThroughEnabled", "True");
             m_pMajorRpConnecting->SetVisible(false);
+            // "ENTERING..." (server answered, game is loading in) covers the CONNECTING text; spinner stays on top
+            m_pMajorRpEntering = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pMajorRpConnecting));
+            if (m_pMajorRpEntering->LoadFromFile(PathJoin(strLangDir, "menu_entering.png")))
+            {
+                m_pMajorRpEntering->SetPosition(CVector2D(0, 0), true);
+                m_pMajorRpEntering->SetSize(CVector2D(1, 1), true);
+                m_pMajorRpEntering->SetProperty("MousePassThroughEnabled", "True");
+                m_pMajorRpEntering->SetVisible(false);
+            }
+            else
+            {
+                m_pManager->DestroyElementRecursive(m_pMajorRpEntering);
+                m_pMajorRpEntering = nullptr;
+            }
             for (int i = 0; i < 12; i++)
             {
                 CGUIStaticImage* pFrame = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pMajorRpConnecting));
@@ -525,6 +539,7 @@ CMainMenu::~CMainMenu()
 #if MAJORRP_PLAY_CONNECTING_STATE
     destroyElement(m_pMajorRpStatus);
     m_pMajorRpConnecting = nullptr;  // child of the PLAY image, freed with it
+    m_pMajorRpEntering = nullptr;
     m_majorRpSpinner.clear();
 #endif
 
@@ -1041,14 +1056,17 @@ void CMainMenu::SetIsIngame(bool bIsIngame)
 void CMainMenu::MajorRpCreateCornerInfo()
 {
     CGUI*       pManager = g_pCore->GetGUI();
-    const float fScale = m_iMenuSizeY / 1080.0f;
-    const float fMargin = 30.0f * fScale;
-    const float fRowY = m_iMenuSizeY - fMargin - 22.0f * fScale;
+    // Children of the full-screen background (the menu canvas is narrower than the screen), placed in
+    // screen corners: background-local = screen - background position
+    const float     fScale = m_ScreenSize.fY / 1080.0f;
+    const float     fMargin = 30.0f * fScale;
+    const CVector2D vecOrigin = CVector2D(0, 0) - m_vecBgBasePos;
+    const float     fRowY = vecOrigin.fY + m_ScreenSize.fY - fMargin - 22.0f * fScale;
     const char* szLinks[2] = {"menu_link_discord", "menu_link_youtube"};
-    float       fX = fMargin;
+    float           fX = vecOrigin.fX + fMargin;
     for (int i = 0; i < 2; i++)
     {
-        CGUIStaticImage* pLink = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pCanvas));
+        CGUIStaticImage* pLink = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pBackground));
         if (!pLink->LoadFromFile(SString("cgui\\images\\majorrp\\%s.png", szLinks[i])))
         {
             m_pManager->DestroyElementRecursive(pLink);
@@ -1059,7 +1077,6 @@ void CMainMenu::MajorRpCreateCornerInfo()
         const CVector2D vecSize = vecNative * (0.5f * fScale);
         pLink->SetPosition(CVector2D(fX, fRowY), false);
         pLink->SetSize(vecSize, false);
-        pLink->SetProperty("InheritsAlpha", "False");
         pLink->SetProperty("MouseCursorImage", "set:CGUI-Images image:MouseHand");
         pLink->SetClickHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpLinkClick, this));
         pLink->SetMouseEnterHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpLinkEnter, this));
@@ -1084,28 +1101,26 @@ void CMainMenu::MajorRpCreateCornerInfo()
     const char* szDots[3] = {"green", "red", "grey"};
     for (int i = 0; i < 3; i++)
     {
-        CGUIStaticImage* pDot = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pCanvas));
+        CGUIStaticImage* pDot = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pBackground));
         if (!pDot->LoadFromFile(SString("cgui\\images\\majorrp\\menu_dot_%s.png", szDots[i])))
         {
             m_pManager->DestroyElementRecursive(pDot);
             continue;
         }
         pDot->SetSize(CVector2D(16.0f * fScale, 16.0f * fScale), false);
-        pDot->SetProperty("InheritsAlpha", "False");
         pDot->SetProperty("MousePassThroughEnabled", "True");
         pDot->SetVisible(false);
         m_pMajorRpDots[i] = pDot;
     }
 
-    m_pMajorRpServerText = reinterpret_cast<CGUILabel*>(pManager->CreateLabel(m_pCanvas, ""));
+    m_pMajorRpServerText = reinterpret_cast<CGUILabel*>(pManager->CreateLabel(m_pBackground, ""));
     m_pMajorRpServerText->SetFont("majorrp-stat");
     m_pMajorRpServerText->SetHorizontalAlign(CGUI_ALIGN_RIGHT);
     m_pMajorRpServerText->SetVerticalAlign(CGUI_ALIGN_VERTICALCENTER);
     m_pMajorRpServerText->SetTextColor(220, 212, 204);
-    m_pMajorRpServerText->SetProperty("InheritsAlpha", "False");
     m_pMajorRpServerText->SetProperty("MousePassThroughEnabled", "True");
     m_pMajorRpServerText->SetSize(CVector2D(500.0f * fScale, 22.0f * fScale), false);
-    m_pMajorRpServerText->SetPosition(CVector2D(m_iMenuSizeX - fMargin - 500.0f * fScale, fRowY), false);
+    m_pMajorRpServerText->SetPosition(CVector2D(vecOrigin.fX + m_ScreenSize.fX - fMargin - 500.0f * fScale, fRowY), false);
 }
 
 bool CMainMenu::OnMajorRpLinkClick(CGUIElement* pElement)
@@ -1149,16 +1164,18 @@ void CMainMenu::MajorRpUpdateServerStatus()
         m_ulMajorRpQueryTick = ulNow;
     }
 
-    m_pMajorRpServerQuery->Pulse(true);
+    // bRemoveNonResponding = true: a server that doesn't answer ends as "skipped" (offline). With false the
+    // browser code pretends it answered, which showed ONLINE for a server that was down.
+    const std::string strResult = m_pMajorRpServerQuery->Pulse(true, true);
 
     int iState = m_iMajorRpServerState < 0 ? -1 : m_iMajorRpServerState;  // keep the last result while re-checking
-    if (m_pMajorRpServerQuery->bScanned)
+    if (strResult == "ParsedQuery")
     {
         iState = 1;
         m_usMajorRpPlayers = m_pMajorRpServerQuery->nPlayers;
         m_usMajorRpMaxPlayers = m_pMajorRpServerQuery->nMaxPlayers;
     }
-    else if (m_pMajorRpServerQuery->bSkipped)
+    else if (strResult == "NoReply" || m_pMajorRpServerQuery->bSkipped)
         iState = 0;
 
     if ((m_pMajorRpServerQuery->bScanned || m_pMajorRpServerQuery->bSkipped) && ulNow - m_ulMajorRpQueryTick > 30000)
@@ -1225,8 +1242,11 @@ void CMainMenu::MajorRpUpdateConnectState()
     if (!m_pMajorRpStatus)
         return;
 
-    CConnectManager*    pConnect = CCore::GetSingleton().GetConnectManager();
-    const bool          bConnecting = pConnect && pConnect->IsConnecting() && !GetIsIngame();
+    CConnectManager* pConnect = CCore::GetSingleton().GetConnectManager();
+    const bool       bServerConnecting = pConnect && pConnect->IsConnecting();
+    // After the server answers, the game loads and joins: still "connecting" until we are in game
+    const bool          bEntering = !GetIsIngame() && !bServerConnecting && CModManager::GetSingleton().IsLoaded();
+    const bool          bConnecting = (bServerConnecting || bEntering) && !GetIsIngame();
     const unsigned long ulNow = GetTickCount32();
 
     if (bConnecting != m_bMajorRpConnectingShown)
@@ -1234,8 +1254,20 @@ void CMainMenu::MajorRpUpdateConnectState()
         m_bMajorRpConnectingShown = bConnecting;
         if (m_pMajorRpConnecting)
             m_pMajorRpConnecting->SetVisible(bConnecting);
+        m_bMajorRpEnteringShown = !bEntering;  // force the text/spinner update below
         if (bConnecting)
             m_strMajorRpError.clear();
+    }
+
+    if (bEntering != m_bMajorRpEnteringShown)
+    {
+        m_bMajorRpEnteringShown = bEntering;
+        if (m_pMajorRpEntering)
+            m_pMajorRpEntering->SetVisible(bEntering);
+        // Icon spot inside menu_connecting.png / menu_entering.png (from the image generator)
+        const float fSpinnerX = (bEntering && m_pMajorRpEntering) ? 0.2695f : 0.2305f;
+        for (CGUIStaticImage* pFrame : m_majorRpSpinner)
+            pFrame->SetPosition(CVector2D(fSpinnerX, 0.3598f), true);
     }
 
     if (bConnecting && !m_majorRpSpinner.empty())
@@ -1254,7 +1286,7 @@ void CMainMenu::MajorRpUpdateConnectState()
     SString strText;
     if (bConnecting)
     {
-        strText = _("Click again to cancel");
+        strText = bEntering ? _("Loading the server, please wait") : _("Click again to cancel");
         m_pMajorRpStatus->SetTextColor(200, 192, 184);
         fAlpha = 1;
     }
@@ -1461,6 +1493,8 @@ bool CMainMenu::OnQuickConnectButtonClick(CGUIElement* pElement, bool left)
         pConnect->Abort();
         return true;
     }
+    if (CModManager::GetSingleton().IsLoaded())
+        return true;  // already loading into the server
     m_strMajorRpError.clear();
 #endif
     if (!g_pCore->IsNetworkReady())
