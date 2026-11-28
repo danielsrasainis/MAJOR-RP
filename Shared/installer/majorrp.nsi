@@ -50,55 +50,262 @@ VIAddVersionKey "LegalCopyright"  "Based on Multi Theft Auto (GPL-3.0)"
 
 Var GTA_DIR
 
-; Look: MAJOR RP icon (same file as MAJOR RP.exe) and branded side/header pictures
+; Look (Danex, 2026-11-28): dark theme with orange accents, Danex's banner over the inner pages,
+; the side picture on Welcome/Finish, Anton titles and Inter text (both OFL, majorrp\fonts-LICENSE.txt).
+; majorrp\mrp_ui.exe is NSIS's modern_headerbmpr.exe with a taller window for the banner
+; (made by the scratch tool mkui.py: only control positions changed).
+Caption "MRP Setup"
+UninstallCaption "MRP Uninstall"
+BrandingText " "
+SetFont "Inter" 8
+!define MUI_UI_HEADERIMAGE_RIGHT "majorrp\mrp_ui.exe"
 !define MUI_ICON   "mta.ico"
 !define MUI_UNICON "uninstall.ico"  ; greyed MAJOR RP icon (Danex, 2026-11-26)
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
-!define MUI_HEADERIMAGE_BITMAP          "majorrp\header.bmp"
-!define MUI_HEADERIMAGE_UNBITMAP        "majorrp\header.bmp"
+!define MUI_HEADERIMAGE_BITMAP          "majorrp\banner.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP        "majorrp\banner.bmp"
 !define MUI_WELCOMEFINISHPAGE_BITMAP    "majorrp\welcome.bmp"
 !define MUI_UNWELCOMEFINISHPAGE_BITMAP  "majorrp\welcome.bmp"
+!define MUI_BGCOLOR   "101013"
+!define MUI_TEXTCOLOR "F0F0F4"
 !define MUI_ABORTWARNING
+!define MUI_CUSTOMFUNCTION_GUIINIT   MrpGuiInit
+!define MUI_CUSTOMFUNCTION_UNGUIINIT un.MrpGuiInit
 
 ; Pages
-!define MUI_WELCOMEPAGE_TITLE "Welcome to MAJOR RP"
-!define MUI_WELCOMEPAGE_TEXT "This will install the MAJOR RP game client on your computer.$\r$\n$\r$\nYou need GTA San Andreas (PC) installed. If MAJOR RP is running, close it before you continue.$\r$\n$\r$\nClick Next to continue."
+!define MUI_WELCOMEPAGE_TITLE "WELCOME TO MAJOR ROLEPLAY"
+!define MUI_WELCOMEPAGE_TEXT "This will install the MAJOR RP game client on your computer.$\r$\n$\r$\nAll what you need is GTA San Andreas game installed. Check it before you continue this installation."
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpWelcomeShow
 !insertmacro MUI_PAGE_WELCOME
 
+!define MUI_PAGE_HEADER_TEXT "CHOOSE COMPONENTS"
+!define MUI_PAGE_HEADER_SUBTEXT "Choose which features of MAJOR RP you want to install."
 !define MUI_COMPONENTSPAGE_NODESC
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpPageShow
 !insertmacro MUI_PAGE_COMPONENTS
 
-!define MUI_PAGE_HEADER_TEXT "Install location"
+!define MUI_PAGE_HEADER_TEXT "INSTALL LOCATION"
 !define MUI_PAGE_HEADER_SUBTEXT "Choose where to install MAJOR RP."
 !define MUI_DIRECTORYPAGE_TEXT_TOP "MAJOR RP will be installed in this folder. To use a different folder, click Browse."
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpPageShow
 !insertmacro MUI_PAGE_DIRECTORY
 
 ; Second directory page: where GTA San Andreas is. The client reads this from the registry.
-!define MUI_PAGE_HEADER_TEXT "GTA San Andreas folder"
+!define MUI_PAGE_HEADER_TEXT "GTA SAN ANDREAS FOLDER"
 !define MUI_PAGE_HEADER_SUBTEXT "Show MAJOR RP where GTA San Andreas is installed."
 !define MUI_DIRECTORYPAGE_TEXT_TOP "Choose the folder that contains gta_sa.exe."
 !define MUI_DIRECTORYPAGE_TEXT_DESTINATION "GTA San Andreas folder"
 !define MUI_DIRECTORYPAGE_VARIABLE $GTA_DIR
 !define MUI_DIRECTORYPAGE_VERIFYONLEAVE
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpPageShow
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE GtaDirLeave
 !insertmacro MUI_PAGE_DIRECTORY
 
+!define MUI_PAGE_HEADER_TEXT "INSTALLING"
+!define MUI_PAGE_HEADER_SUBTEXT "Please wait while MAJOR RP is being installed."
+!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "INSTALLATION COMPLETE"
+!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "MAJOR RP was installed successfully."
+!define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "INSTALLATION ABORTED"
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpPageShow
 !insertmacro MUI_PAGE_INSTFILES
 
 ; Starting the game from here (still as admin) lets its one-time first-run setup finish without
 ; a second Windows permission prompt.
+!define MUI_FINISHPAGE_TITLE "MAJOR RP IS INSTALLED"
+!define MUI_FINISHPAGE_TEXT "MAJOR RP has been installed on your computer.$\r$\n$\r$\nClick Finish to close Setup."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${CLIENT_EXE}"
 !define MUI_FINISHPAGE_RUN_TEXT "Start MAJOR RP"
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpFinishShow
 !insertmacro MUI_PAGE_FINISH
 
+!define MUI_PAGE_HEADER_TEXT "UNINSTALL MAJOR RP"
+!define MUI_PAGE_HEADER_SUBTEXT "Remove MAJOR RP from your computer."
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.MrpPageShow
 !insertmacro MUI_UNPAGE_CONFIRM
+!define MUI_PAGE_HEADER_TEXT "UNINSTALLING"
+!define MUI_PAGE_HEADER_SUBTEXT "Please wait while MAJOR RP is being removed."
+!define MUI_UNINSTFILESPAGE_FINISHHEADER_TEXT "UNINSTALL COMPLETE"
+!define MUI_UNINSTFILESPAGE_FINISHHEADER_SUBTEXT "MAJOR RP was removed from your computer."
+!define MUI_UNINSTFILESPAGE_ABORTHEADER_TEXT "UNINSTALL ABORTED"
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.MrpPageShow
 !insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
 
+;--------------------------------
+; Dark theme helpers. Colours are RRGGBB for SetCtlColors and 0x00BBGGRR for Windows messages.
+!define MRP_BG      "101013"
+!define MRP_PANEL   "18181C"
+!define MRP_TEXT    "F0F0F4"
+!define MRP_SUB     "AAAAB2"
+!define MRP_ORANGE  "FF6E00"
+!define MRP_LINE    "34343A"
+
+Var MrpFontTitle
+Var MrpFontBig
+Var MrpFontMono
+
+; Load the embedded fonts for this process only (FR_PRIVATE), before any window is created
+!macro MRP_LOAD_FONTS
+    InitPluginsDir
+    File "/oname=$PLUGINSDIR\inter.otf" "majorrp\inter.otf"
+    File "/oname=$PLUGINSDIR\anton.ttf" "majorrp\anton.ttf"
+    System::Call 'gdi32::AddFontResourceEx(t "$PLUGINSDIR\inter.otf", i 0x10, p 0) i'
+    System::Call 'gdi32::AddFontResourceEx(t "$PLUGINSDIR\anton.ttf", i 0x10, p 0) i'
+!macroend
+
+; Dark Windows look for a button / checkbox / scroll bar (Windows 10 1809+; older Windows ignores it)
+!macro MRP_DARK_CONTROL HWND
+    System::Call 'uxtheme::SetWindowTheme(p ${HWND}, w "DarkMode_Explorer", p 0)'
+!macroend
+
+; Classic (unthemed) look, so the control uses our colours instead of the Windows theme
+!macro MRP_PLAIN_CONTROL HWND
+    System::Call 'uxtheme::SetWindowTheme(p ${HWND}, w "", w "")'
+!macroend
+
+!macro MRP_FUNCTIONS UN
+Function ${UN}MrpGuiInit
+    CreateFont $MrpFontTitle "Anton" 12 400
+    CreateFont $MrpFontBig   "Anton" 18 400
+    CreateFont $MrpFontMono  "Consolas" 9 400
+
+    ; window, dark title bar (Windows 10 2004+ uses 20, older Windows 10 used 19), Windows 11 caption colour
+    SetCtlColors $HWNDPARENT ${MRP_TEXT} ${MRP_BG}
+    System::Call 'dwmapi::DwmSetWindowAttribute(p $HWNDPARENT, i 19, *i 1, i 4)'
+    System::Call 'dwmapi::DwmSetWindowAttribute(p $HWNDPARENT, i 20, *i 1, i 4)'
+    System::Call 'dwmapi::DwmSetWindowAttribute(p $HWNDPARENT, i 35, *i 0x00131010, i 4)'
+
+    ; page title (Anton) and subtitle, orange bar next to the title, lines
+    SendMessage $mui.Header.Text ${WM_SETFONT} $MrpFontTitle 1
+    SetCtlColors $mui.Header.Text ${MRP_TEXT} ${MRP_BG}
+    SetCtlColors $mui.Header.SubText ${MRP_SUB} ${MRP_BG}
+    GetDlgItem $0 $HWNDPARENT 1036
+    SetCtlColors $0 "" ${MRP_ORANGE}
+    SetCtlColors $mui.Line.Standard "" ${MRP_LINE}
+    SetCtlColors $mui.Line.FullWindow "" ${MRP_LINE}
+    SetCtlColors $mui.Branding.Background ${MRP_BG} ${MRP_BG}
+    SetCtlColors $mui.Branding.Text ${MRP_BG} ${MRP_BG}
+
+    ; Back / Next / Cancel
+    GetDlgItem $0 $HWNDPARENT 1
+    !insertmacro MRP_DARK_CONTROL $0
+    GetDlgItem $0 $HWNDPARENT 2
+    !insertmacro MRP_DARK_CONTROL $0
+    GetDlgItem $0 $HWNDPARENT 3
+    !insertmacro MRP_DARK_CONTROL $0
+FunctionEnd
+
+; Colours every control of the inner page that is showing (components, folders, progress, uninstall)
+Function ${UN}MrpPageShow
+    FindWindow $1 "#32770" "" $HWNDPARENT
+    SetCtlColors $1 ${MRP_TEXT} ${MRP_BG}
+
+    ; plain texts
+    ${ForEach} $2 1006 1029 + 1
+        GetDlgItem $0 $1 $2
+        ${If} $0 != 0
+            SetCtlColors $0 ${MRP_TEXT} ${MRP_BG}
+        ${EndIf}
+    ${Next}
+    ; components page: space required / "select components" labels
+    ${ForEach} $2 1021 1023 + 1
+        GetDlgItem $0 $1 $2
+        ${If} $0 != 0
+            SetCtlColors $0 ${MRP_SUB} ${MRP_BG}
+        ${EndIf}
+    ${Next}
+    GetDlgItem $0 $1 1024   ; space available
+    ${If} $0 != 0
+        SetCtlColors $0 ${MRP_SUB} ${MRP_BG}
+    ${EndIf}
+
+    ; folder group box: orange caption
+    GetDlgItem $0 $1 1020
+    ${If} $0 != 0
+        !insertmacro MRP_PLAIN_CONTROL $0
+        SetCtlColors $0 ${MRP_ORANGE} ${MRP_BG}
+    ${EndIf}
+
+    ; folder edit boxes (directory page 1019, uninstall page 1000)
+    ${ForEach} $2 1019 1000 - 19
+        GetDlgItem $0 $1 $2
+        ${If} $0 != 0
+            SetCtlColors $0 ${MRP_TEXT} ${MRP_PANEL}
+        ${EndIf}
+    ${Next}
+
+    ; Browse... and Show details buttons
+    GetDlgItem $0 $1 1001
+    ${If} $0 != 0
+        !insertmacro MRP_DARK_CONTROL $0
+    ${EndIf}
+    GetDlgItem $0 $1 1027
+    ${If} $0 != 0
+        !insertmacro MRP_DARK_CONTROL $0
+    ${EndIf}
+
+    ; components tree: dark background, light text (TVM_SETBKCOLOR / TVM_SETTEXTCOLOR)
+    GetDlgItem $0 $1 1032
+    ${If} $0 != 0
+        !insertmacro MRP_DARK_CONTROL $0
+        SendMessage $0 0x111D 0 0x00131010
+        SendMessage $0 0x111E 0 0x00F4F0F0
+    ${EndIf}
+
+    ; progress bar: flat orange (PBM_SETBARCOLOR / PBM_SETBKCOLOR need the classic look)
+    GetDlgItem $0 $1 1004
+    ${If} $0 != 0
+        !insertmacro MRP_PLAIN_CONTROL $0
+        SendMessage $0 0x0409 0 0x00006EFF
+        SendMessage $0 0x2001 0 0x002E2828
+    ${EndIf}
+
+    ; install log: dark box, grey code-style text (LVM_SETBKCOLOR / LVM_SETTEXTBKCOLOR / LVM_SETTEXTCOLOR)
+    GetDlgItem $0 $1 1016
+    ${If} $0 != 0
+        !insertmacro MRP_DARK_CONTROL $0
+        SendMessage $0 0x1001 0 0x001C1818
+        SendMessage $0 0x1026 0 0x001C1818
+        SendMessage $0 0x1024 0 0x00B2AAAA
+        SendMessage $0 ${WM_SETFONT} $MrpFontMono 1
+    ${EndIf}
+FunctionEnd
+!macroend
+!insertmacro MRP_FUNCTIONS ""
+!insertmacro MRP_FUNCTIONS "un."
+
+; Welcome / Finish: side picture over the full (taller) page height, Anton title
+!macro MRP_FULLPAGE PAGE IMAGE BITMAP TITLE
+    System::Call '*(i,i,i,i) p .r1'
+    System::Call 'user32::GetClientRect(p ${PAGE}, p r1)'
+    System::Call '*$1(i,i,i,i .r3)'
+    System::Call 'user32::GetClientRect(p ${IMAGE}, p r1)'
+    System::Call '*$1(i,i,i .r2,i)'
+    System::Free $1
+    System::Call 'user32::SetWindowPos(p ${IMAGE}, p 0, i 0, i 0, i r2, i r3, i 0x16)'
+    ${NSD_FreeImage} ${BITMAP}
+    ${NSD_SetStretchedImage} ${IMAGE} "$PLUGINSDIR\modern-wizard.bmp" ${BITMAP}
+    SendMessage ${TITLE} ${WM_SETFONT} $MrpFontBig 1
+!macroend
+
+Function MrpWelcomeShow
+    !insertmacro MRP_FULLPAGE $mui.WelcomePage $mui.WelcomePage.Image $mui.WelcomePage.Image.Bitmap $mui.WelcomePage.Title
+    SetCtlColors $mui.WelcomePage.Text ${MRP_SUB} ${MRP_BG}
+FunctionEnd
+
+Function MrpFinishShow
+    !insertmacro MRP_FULLPAGE $mui.FinishPage $mui.FinishPage.Image $mui.FinishPage.Image.Bitmap $mui.FinishPage.Title
+    SetCtlColors $mui.FinishPage.Text ${MRP_SUB} ${MRP_BG}
+    ; themed check boxes ignore text colours (black text on dark), so use the classic look
+    !insertmacro MRP_PLAIN_CONTROL $mui.FinishPage.Run
+    SetCtlColors $mui.FinishPage.Run ${MRP_TEXT} ${MRP_BG}
+FunctionEnd
+
 ; Find GTA San Andreas so most people can just click Next
 Function .onInit
+    !insertmacro MRP_LOAD_FONTS
     ReadRegStr $GTA_DIR HKLM "${REG_COMMON_KEY}" "GTA:SA Path"
     ${If} $GTA_DIR == ""
         ReadRegStr $GTA_DIR HKLM "Software\Multi Theft Auto: San Andreas All\Common" "GTA:SA Path"
@@ -113,6 +320,10 @@ Function .onInit
     ${If} $GTA_DIR == ""
         StrCpy $GTA_DIR "$PROGRAMFILES\Rockstar Games\GTA San Andreas"
     ${EndIf}
+FunctionEnd
+
+Function un.onInit
+    !insertmacro MRP_LOAD_FONTS
 FunctionEnd
 
 Function GtaDirLeave
