@@ -101,8 +101,8 @@ void CTransferBox::CreateMajorRPWindow()
     image(m_cancel, m_card.get(), "cgui\\images\\majorrp\\tb3_cancel.png", (W - 122) / 2, 362, 122, 38);
 }
 
-// MAJOR RP: while the server files download after joining, a black screen behind the download box (no radar,
-// HUD or zone name). The camera waits at account/c_login.lua loginScreens[1] so the login scene is ready.
+// MAJOR RP: while the server files download after joining, a black screen behind the download box (it also
+// covers the radar, HUD and zone name). The camera waits at account/c_login.lua loginScreens[1] so the login scene is ready.
 void CTransferBox::MajorRpBackdropPulse()
 {
     if (!m_backdropActive)
@@ -112,17 +112,10 @@ void CTransferBox::MajorRpBackdropPulse()
         m_camLook = CVector(118.90101623535f, -1766.6478271484f, 41.555904388428f);
         m_slide = 0;
         m_backdropStartTick = GetTickCount64_();
-        g_pGame->GetHud()->SetComponentVisible(HUD_ALL, false);
         // Put the (not yet spawned) local player near the view so the area streams in, like the login does
         if (CClientPlayer* pLocal = g_pClientGame->GetLocalPlayer())
             pLocal->SetPosition(CVector(118.9f, -1766.6f, 4.0f));
     }
-
-    // The server's fadeCamera on join turns the zone name back on, so keep the area and vehicle name hidden
-    CHud* pHud = g_pGame->GetHud();
-    for (eHudComponent component : {HUD_AREA_NAME, HUD_VEHICLE_NAME})
-        if (pHud->IsComponentVisible(component))
-            pHud->SetComponentVisible(component, false);
 
     // Camera held at the login panel's start point so that area is loaded when the login shows
     CStaticFunctionDefinitions::SetCameraMatrix(m_camPos, &m_camLook, 0, 70);
@@ -138,8 +131,8 @@ void CTransferBox::MajorRpStopBackdrop() const
     if (!m_backdropActive)
         return;
     m_backdropActive = false;
-    g_pGame->GetHud()->SetComponentVisible(HUD_ALL, true);  // scripts (account, hud) set their own HUD right after
-    g_pGame->GetHud()->SetComponentVisible(HUD_AREA_NAME, false);  // like MTA after connecting: the next fadeCamera brings it back
+    // The HUD is never touched here: the black screen covers it, and the server's scripts (hud, account)
+    // have already set their own HUD by the time the download box closes
 }
 
 void CTransferBox::SetCurrentName(const char* szName)
