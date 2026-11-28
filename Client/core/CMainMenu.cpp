@@ -209,7 +209,11 @@ CMainMenu::CMainMenu(CGUI* pManager)
     m_pVersion->SetVisible(false);  // MAJOR RP: hide the "1.7" badge next to the logo
 
 #if MAJORRP_MENU_V2
+    #if MAJORRP_HIDE_ABOUT
+    float fBase = 0.675f;  // MAJOR RP: three pills, a little lower to stay centred in the space under the logo
+    #else
     float fBase = 0.655f;  // MAJOR RP: pill buttons under the logo
+    #endif
     float fGap = 0.066f;
 #else
     float fBase = 0.685f;  // MAJOR RP: between the logo and the orange line
@@ -292,7 +296,9 @@ CMainMenu::CMainMenu(CGUI* pManager)
 #endif
 
     m_menuItems.push_back(CreateItem(MENU_ITEM_SETTINGS, "menu_settings.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
+#if !MAJORRP_HIDE_ABOUT  // MAJOR RP: no ABOUT button (menu is PLAY / SETTINGS / QUIT)
     m_menuItems.push_back(CreateItem(MENU_ITEM_ABOUT, "menu_about.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
+#endif
     m_menuItems.push_back(CreateItem(MENU_ITEM_QUIT, "menu_quit.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
 
     // We store the position of the top item, and the second item.  These will be useful later

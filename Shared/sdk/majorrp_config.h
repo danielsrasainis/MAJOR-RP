@@ -88,3 +88,6 @@
 
 // 1 = darken the menu background towards the screen edges
 #define MAJORRP_MENU_VIGNETTE 1
+
+// 1 = no ABOUT button in the menu (Danex, 2026-11-28)
+#define MAJORRP_HIDE_ABOUT 1
