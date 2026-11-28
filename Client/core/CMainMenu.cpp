@@ -1141,7 +1141,8 @@ void CMainMenu::MajorRpCreateCornerInfo()
 
 void CMainMenu::MajorRpLinkClick(int iLink)
 {
-    const SString strURL = iLink == 0 ? SString("https://" MAJORRP_DISCORD_URL) : SString(MAJORRP_YOUTUBE_URL);
+    const char*   szURL = iLink == 0 ? "https://" MAJORRP_DISCORD_URL : MAJORRP_YOUTUBE_URL;
+    const SString strURL = SStringX(szURL);
     CCore::GetSingleton().GetConsole()->Printf("Opening %s", *strURL);
     WriteDebugEvent(SString("MAJOR RP menu link: %s", *strURL));
     ShellExecuteNonBlocking("open", strURL);
