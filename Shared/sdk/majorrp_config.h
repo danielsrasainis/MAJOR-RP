@@ -41,7 +41,7 @@
 
 // About window
 #define MAJORRP_OWNER_NAME  "Danex"
-#define MAJORRP_DISCORD_URL "discord.gg/majorrp"  // placeholder: put your real invite here
+#define MAJORRP_DISCORD_URL "discord.gg/zcUs9YxCEm"
 #define MAJORRP_SOURCE_URL  "github.com/danielsrasainis/MAJOR-RP"
 
 // 1 = hide MTA's "The Latest News" headlines on the main menu
@@ -81,3 +81,10 @@
 
 // 1 = hand cursor over the menu pills (skin buttons/checkboxes/tabs/combos get it from CGUI.lnf.xml)
 #define MAJORRP_HAND_CURSOR 1
+
+// 1 = main menu corners (no bar): Discord + YouTube links bottom-left, live server status bottom-right
+#define MAJORRP_MENU_CORNER_INFO 1
+#define MAJORRP_YOUTUBE_URL      "https://www.youtube.com/@Danexxx777"
+
+// 1 = darken the menu background towards the screen edges
+#define MAJORRP_MENU_VIGNETTE 1

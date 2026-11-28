@@ -304,6 +304,24 @@ CMainMenu::CMainMenu(CGUI* pManager)
     m_pMenuArea->SetMouseEnterHandler(GUI_CALLBACK(&CMainMenu::OnMenuEnter, this));
     m_pMenuArea->SetMouseLeaveHandler(GUI_CALLBACK(&CMainMenu::OnMenuExit, this));
 
+#if MAJORRP_MENU_VIGNETTE
+    {
+        // Dark edges over the background (child, so it fades in and out with it)
+        CGUIStaticImage* pVignette = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pBackground));
+        if (pVignette->LoadFromFile("cgui\\images\\majorrp\\menu_vignette.png"))
+        {
+            pVignette->SetPosition(CVector2D(0, 0), true);
+            pVignette->SetSize(CVector2D(1, 1), true);
+            pVignette->SetProperty("MousePassThroughEnabled", "True");
+        }
+        else
+            m_pManager->DestroyElementRecursive(pVignette);
+    }
+#endif
+#if MAJORRP_MENU_CORNER_INFO
+    MajorRpCreateCornerInfo();
+#endif
+
     m_pLatestNews = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage());
     if (!m_pLatestNews->LoadFromFile(PathJoin(g_pCore->GetLocalization()->GetLanguageDirectory(), "latest_news.png")))
     {
@@ -496,6 +514,14 @@ CMainMenu::~CMainMenu()
     destroyElement(m_pLogo);
     destroyElement(m_pLatestNews);
     destroyElement(m_pVersion);
+#if MAJORRP_MENU_CORNER_INFO
+    for (CGUIStaticImage*& pLink : m_pMajorRpLinks)
+        destroyElement(pLink);
+    for (CGUIStaticImage*& pDot : m_pMajorRpDots)
+        destroyElement(pDot);
+    destroyElement(m_pMajorRpServerText);
+    SAFE_DELETE(m_pMajorRpServerQuery);
+#endif
 #if MAJORRP_PLAY_CONNECTING_STATE
     destroyElement(m_pMajorRpStatus);
     m_pMajorRpConnecting = nullptr;  // child of the PLAY image, freed with it
@@ -600,6 +626,10 @@ void CMainMenu::Update()
 #endif
 #if MAJORRP_PLAY_CONNECTING_STATE
     MajorRpUpdateConnectState();
+#endif
+#if MAJORRP_MENU_CORNER_INFO
+    if (m_bIsVisible)
+        MajorRpUpdateServerStatus();
 #endif
 #if MAJORRP_HAND_CURSOR
     // Hand cursor while a menu pill is hovered (the pills sit under one invisible click area)
@@ -1005,6 +1035,167 @@ void CMainMenu::SetIsIngame(bool bIsIngame)
         m_iMoveStartPos = m_menuAY;
     }
 }
+
+#if MAJORRP_MENU_CORNER_INFO
+// Bottom-left: Discord and YouTube links. Bottom-right: live server status. No bar behind them.
+void CMainMenu::MajorRpCreateCornerInfo()
+{
+    CGUI*       pManager = g_pCore->GetGUI();
+    const float fScale = m_iMenuSizeY / 1080.0f;
+    const float fMargin = 30.0f * fScale;
+    const float fRowY = m_iMenuSizeY - fMargin - 22.0f * fScale;
+    const char* szLinks[2] = {"menu_link_discord", "menu_link_youtube"};
+    float       fX = fMargin;
+    for (int i = 0; i < 2; i++)
+    {
+        CGUIStaticImage* pLink = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pCanvas));
+        if (!pLink->LoadFromFile(SString("cgui\\images\\majorrp\\%s.png", szLinks[i])))
+        {
+            m_pManager->DestroyElementRecursive(pLink);
+            continue;
+        }
+        CVector2D vecNative;
+        pLink->GetNativeSize(vecNative);
+        const CVector2D vecSize = vecNative * (0.5f * fScale);
+        pLink->SetPosition(CVector2D(fX, fRowY), false);
+        pLink->SetSize(vecSize, false);
+        pLink->SetProperty("InheritsAlpha", "False");
+        pLink->SetProperty("MouseCursorImage", "set:CGUI-Images image:MouseHand");
+        pLink->SetClickHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpLinkClick, this));
+        pLink->SetMouseEnterHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpLinkEnter, this));
+        pLink->SetMouseLeaveHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpLinkLeave, this));
+
+        CGUIStaticImage* pHover = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(pLink));
+        if (pHover->LoadFromFile(SString("cgui\\images\\majorrp\\%s_hover.png", szLinks[i])))
+        {
+            pHover->SetPosition(CVector2D(0, 0), true);
+            pHover->SetSize(CVector2D(1, 1), true);
+            pHover->SetProperty("MousePassThroughEnabled", "True");
+            pHover->SetAlpha(0);
+            m_pMajorRpLinkHovers[i] = pHover;
+        }
+        else
+            m_pManager->DestroyElementRecursive(pHover);
+
+        m_pMajorRpLinks[i] = pLink;
+        fX += vecSize.fX + 34.0f * fScale;
+    }
+
+    const char* szDots[3] = {"green", "red", "grey"};
+    for (int i = 0; i < 3; i++)
+    {
+        CGUIStaticImage* pDot = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pCanvas));
+        if (!pDot->LoadFromFile(SString("cgui\\images\\majorrp\\menu_dot_%s.png", szDots[i])))
+        {
+            m_pManager->DestroyElementRecursive(pDot);
+            continue;
+        }
+        pDot->SetSize(CVector2D(16.0f * fScale, 16.0f * fScale), false);
+        pDot->SetProperty("InheritsAlpha", "False");
+        pDot->SetProperty("MousePassThroughEnabled", "True");
+        pDot->SetVisible(false);
+        m_pMajorRpDots[i] = pDot;
+    }
+
+    m_pMajorRpServerText = reinterpret_cast<CGUILabel*>(pManager->CreateLabel(m_pCanvas, ""));
+    m_pMajorRpServerText->SetFont("majorrp-stat");
+    m_pMajorRpServerText->SetHorizontalAlign(CGUI_ALIGN_RIGHT);
+    m_pMajorRpServerText->SetVerticalAlign(CGUI_ALIGN_VERTICALCENTER);
+    m_pMajorRpServerText->SetTextColor(220, 212, 204);
+    m_pMajorRpServerText->SetProperty("InheritsAlpha", "False");
+    m_pMajorRpServerText->SetProperty("MousePassThroughEnabled", "True");
+    m_pMajorRpServerText->SetSize(CVector2D(500.0f * fScale, 22.0f * fScale), false);
+    m_pMajorRpServerText->SetPosition(CVector2D(m_iMenuSizeX - fMargin - 500.0f * fScale, fRowY), false);
+}
+
+bool CMainMenu::OnMajorRpLinkClick(CGUIElement* pElement)
+{
+    if (pElement == m_pMajorRpLinks[0])
+        ShellExecuteNonBlocking("open", "https://" MAJORRP_DISCORD_URL);
+    else if (pElement == m_pMajorRpLinks[1])
+        ShellExecuteNonBlocking("open", MAJORRP_YOUTUBE_URL);
+    return true;
+}
+
+bool CMainMenu::OnMajorRpLinkEnter(CGUIElement* pElement)
+{
+    for (int i = 0; i < 2; i++)
+        if (pElement == m_pMajorRpLinks[i] && m_pMajorRpLinkHovers[i])
+            m_pMajorRpLinkHovers[i]->SetAlpha(1);
+    return true;
+}
+
+bool CMainMenu::OnMajorRpLinkLeave(CGUIElement* pElement)
+{
+    for (int i = 0; i < 2; i++)
+        if (pElement == m_pMajorRpLinks[i] && m_pMajorRpLinkHovers[i])
+            m_pMajorRpLinkHovers[i]->SetAlpha(0);
+    return true;
+}
+
+// Asks the server for its player count (same query the server browser uses), every 30 seconds
+void CMainMenu::MajorRpUpdateServerStatus()
+{
+    if (!m_pMajorRpServerText)
+        return;
+
+    const unsigned long ulNow = GetTickCount32();
+    if (!m_pMajorRpServerQuery)
+    {
+        in_addr address;
+        if (!CServerListItem::Parse(MAJORRP_SERVER_HOST, address))
+            return;
+        m_pMajorRpServerQuery = new CServerListItem(address, MAJORRP_SERVER_PORT);
+        m_ulMajorRpQueryTick = ulNow;
+    }
+
+    m_pMajorRpServerQuery->Pulse(true);
+
+    int iState = m_iMajorRpServerState < 0 ? -1 : m_iMajorRpServerState;  // keep the last result while re-checking
+    if (m_pMajorRpServerQuery->bScanned)
+    {
+        iState = 1;
+        m_usMajorRpPlayers = m_pMajorRpServerQuery->nPlayers;
+        m_usMajorRpMaxPlayers = m_pMajorRpServerQuery->nMaxPlayers;
+    }
+    else if (m_pMajorRpServerQuery->bSkipped)
+        iState = 0;
+
+    if ((m_pMajorRpServerQuery->bScanned || m_pMajorRpServerQuery->bSkipped) && ulNow - m_ulMajorRpQueryTick > 30000)
+    {
+        m_pMajorRpServerQuery->ResetForRefresh();
+        m_ulMajorRpQueryTick = ulNow;
+    }
+
+    SString strText;
+    if (iState == 1)
+        strText = SString(_("ONLINE   %u / %u players"), m_usMajorRpPlayers, m_usMajorRpMaxPlayers);
+    else if (iState == 0)
+        strText = _("SERVER OFFLINE");
+    else
+        strText = _("CHECKING SERVER...");
+
+    if (iState == m_iMajorRpServerState && m_pMajorRpServerText->GetText() == strText)
+        return;
+    m_iMajorRpServerState = iState;
+    m_pMajorRpServerText->SetText(strText);
+
+    // Dot just left of the right-aligned text
+    const int       iDot = iState == 1 ? 0 : (iState == 0 ? 1 : 2);
+    const CVector2D vecTextPos = m_pMajorRpServerText->GetPosition(false);
+    const CVector2D vecTextSize = m_pMajorRpServerText->GetSize(false);
+    const float     fExtent = m_pMajorRpServerText->GetTextExtent();
+    for (int i = 0; i < 3; i++)
+    {
+        if (!m_pMajorRpDots[i])
+            continue;
+        m_pMajorRpDots[i]->SetVisible(i == iDot);
+        const CVector2D vecDot = m_pMajorRpDots[i]->GetSize(false);
+        m_pMajorRpDots[i]->SetPosition(CVector2D(vecTextPos.fX + vecTextSize.fX - fExtent - vecDot.fX - 6.0f, vecTextPos.fY + (vecTextSize.fY - vecDot.fY) / 2),
+                                       false);
+    }
+}
+#endif
 
 #if MAJORRP_PLAY_CONNECTING_STATE
 bool CMainMenu::MajorRpCanShowConnectState()

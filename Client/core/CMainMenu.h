@@ -113,6 +113,22 @@ private:
     unsigned int                  m_uiMajorRpSpinnerFrame = 0;
     bool                          m_bMajorRpHandCursor = false;
 
+    // MAJOR RP: corner links and server status
+    void                   MajorRpCreateCornerInfo();
+    void                   MajorRpUpdateServerStatus();
+    bool                   OnMajorRpLinkClick(CGUIElement* pElement);
+    bool                   OnMajorRpLinkEnter(CGUIElement* pElement);
+    bool                   OnMajorRpLinkLeave(CGUIElement* pElement);
+    CGUIStaticImage*       m_pMajorRpLinks[2] = {};
+    CGUIStaticImage*       m_pMajorRpLinkHovers[2] = {};
+    CGUIStaticImage*       m_pMajorRpDots[3] = {};  // green, red, grey
+    CGUILabel*             m_pMajorRpServerText = nullptr;
+    class CServerListItem* m_pMajorRpServerQuery = nullptr;
+    unsigned long          m_ulMajorRpQueryTick = 0;
+    int                    m_iMajorRpServerState = -2;  // -1 checking, 0 offline, 1 online
+    unsigned short         m_usMajorRpPlayers = 0;
+    unsigned short         m_usMajorRpMaxPlayers = 0;
+
     sMenuItem* CreateItem(unsigned char menuType, const char* szFilename, CVector2D vecRelPosition);
     bool       SetItemHoverProgress(sMenuItem* pItem, float fProgress, bool bHovering);
 
