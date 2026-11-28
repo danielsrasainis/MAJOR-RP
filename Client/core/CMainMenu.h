@@ -82,6 +82,11 @@ public:
     // Returns false and shows a dialog if the local server cannot run on this OS (e.g. 32-bit).
     bool WarnIfLocalServerUnsupported();
 
+    // MAJOR RP: true if connect errors can be shown on the menu (the menu is on screen)
+    bool MajorRpCanShowConnectState();
+    // MAJOR RP: orange text above PLAY that fades out after a few seconds
+    void MajorRpShowConnectError(const SString& strMessage);
+
 private:
     // MAJOR RP: menu animations and sounds
     void          MajorRpPlaySound(unsigned int uiSound);
@@ -95,6 +100,17 @@ private:
     CVector2D     m_vecBgBaseSize;
     unsigned long m_ulMajorRpStartTick = 0;
     bool          m_bMajorRpLogoDone = false;
+
+    // MAJOR RP: PLAY -> "CONNECTING..." state
+    void                          MajorRpUpdateConnectState();
+    void                          MajorRpPlaceStatusLabel();
+    CGUIStaticImage*              m_pMajorRpConnecting = nullptr;
+    std::vector<CGUIStaticImage*> m_majorRpSpinner;
+    CGUILabel*                    m_pMajorRpStatus = nullptr;
+    bool                          m_bMajorRpConnectingShown = false;
+    SString                       m_strMajorRpError;
+    unsigned long                 m_ulMajorRpErrorTick = 0;
+    unsigned int                  m_uiMajorRpSpinnerFrame = 0;
 
     sMenuItem* CreateItem(unsigned char menuType, const char* szFilename, CVector2D vecRelPosition);
     bool       SetItemHoverProgress(sMenuItem* pItem, float fProgress, bool bHovering);

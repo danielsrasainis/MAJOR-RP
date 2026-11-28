@@ -26,6 +26,8 @@ public:
 
     bool Abort();
 
+    bool IsConnecting() const noexcept { return m_bIsConnecting; }  // MAJOR RP
+
     bool WasQuickConnect() const noexcept { return m_quickConnect; }
 
     void DoPulse();

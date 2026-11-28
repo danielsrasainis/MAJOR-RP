@@ -17,6 +17,30 @@ using namespace std;
 static CConnectManager* g_pConnectManager = NULL;
 extern CCore*           g_pCore;
 
+#if MAJORRP_PLAY_CONNECTING_STATE
+// MAJOR RP: while the menu is on screen, connecting shows on the PLAY button and errors
+// show as a short orange line above it instead of message boxes
+static CMainMenu* MajorRpConnectMenu()
+{
+    CLocalGUI* pLocalGUI = CCore::GetSingleton().GetLocalGUI();
+    CMainMenu* pMenu = pLocalGUI ? pLocalGUI->GetMainMenu() : nullptr;
+    return (pMenu && pMenu->MajorRpCanShowConnectState()) ? pMenu : nullptr;
+}
+
+static bool MajorRpShowConnectError(SString strMessage)
+{
+    CMainMenu* pMenu = MajorRpConnectMenu();
+    if (!pMenu)
+        return false;
+    if (strMessage.BeginsWithI("Disconnected: "))
+        strMessage = strMessage.SubStr(14);
+    if (!strMessage.empty())
+        strMessage[0] = toupper(static_cast<unsigned char>(strMessage[0]));
+    pMenu->MajorRpShowConnectError(strMessage);
+    return true;
+}
+#endif
+
 CConnectManager::CConnectManager()
 {
     g_pConnectManager = this;
@@ -141,6 +165,10 @@ bool CConnectManager::Connect(const char* szHost, unsigned short usPort, const c
     if (m_usPort && !pNet->StartNetwork(strAddress, m_usPort, CVARS_GET_VALUE<bool>("packet_tag")))
     {
         SString strBuffer(_("Connecting to %s at port %u failed!"), m_strHost.c_str(), m_usPort);
+#if MAJORRP_PLAY_CONNECTING_STATE
+        if (MajorRpShowConnectError(_("Could not connect to the server")))
+            return false;
+#endif
         CCore::GetSingleton().ShowMessageBox(_("Error") + _E("CC22"), strBuffer, MB_BUTTON_OK | MB_ICON_ERROR);  // Failed to connect
         return false;
     }
@@ -164,7 +192,10 @@ bool CConnectManager::Connect(const char* szHost, unsigned short usPort, const c
     SString strBuffer(_("Connecting to %s:%u ..."), m_strHost.c_str(), m_usPort);
     if (m_bReconnect)
         strBuffer = SString(_("Reconnecting to %s:%u ..."), m_strHost.c_str(), m_usPort);
-    CCore::GetSingleton().ShowMessageBox(_("CONNECTING"), strBuffer, MB_BUTTON_CANCEL | MB_ICON_INFO, m_pOnCancelClick);
+#if MAJORRP_PLAY_CONNECTING_STATE
+    if (!MajorRpConnectMenu())
+#endif
+        CCore::GetSingleton().ShowMessageBox(_("CONNECTING"), strBuffer, MB_BUTTON_CANCEL | MB_ICON_INFO, m_pOnCancelClick);
     WriteDebugEvent(SString("Connecting to %s:%u ...", m_strHost.c_str(), m_usPort));
 
     return true;
@@ -281,7 +312,10 @@ void CConnectManager::DoPulse()
         if (iConnectTimeDelta >= 8)
         {
             // Show a message that the connection timed out and abort
-            g_pCore->ShowNetErrorMessageBox(_("Error") + _E("CC23"), _("Connection timed out"), "connect-timed-out", true);
+#if MAJORRP_PLAY_CONNECTING_STATE
+            if (!MajorRpShowConnectError(_("Server is not responding, try again later")))
+#endif
+                g_pCore->ShowNetErrorMessageBox(_("Error") + _E("CC23"), _("Connection timed out"), "connect-timed-out", true);
             Abort();
         }
         else
@@ -339,7 +373,10 @@ void CConnectManager::DoPulse()
                 // Only display the error if we set one
                 if (strError.length() > 0)
                 {
-                    CCore::GetSingleton().ShowNetErrorMessageBox(_("Error") + strErrorCode, strError);
+#if MAJORRP_PLAY_CONNECTING_STATE
+                    if (!MajorRpShowConnectError(strError))
+#endif
+                        CCore::GetSingleton().ShowNetErrorMessageBox(_("Error") + strErrorCode, strError);
                 }
                 else  // Otherwise, remove the message box and hide quick connect
                 {
@@ -432,7 +469,10 @@ bool CConnectManager::StaticProcessPacket(unsigned char ucPacketID, NetBitStream
             else
             {
                 // Show failed message and abort the attempt
-                CCore::GetSingleton().ShowNetErrorMessageBox(_("Error") + _E("CC32"), _("Bad server response (2)"));
+#if MAJORRP_PLAY_CONNECTING_STATE
+                if (!MajorRpShowConnectError(_("Bad server response (2)")))
+#endif
+                    CCore::GetSingleton().ShowNetErrorMessageBox(_("Error") + _E("CC32"), _("Bad server response (2)"));
                 g_pConnectManager->Abort();
             }
         }
@@ -442,7 +482,10 @@ bool CConnectManager::StaticProcessPacket(unsigned char ucPacketID, NetBitStream
             if (ucPacketID != PACKET_ID_SERVER_JOIN && ucPacketID != PACKET_ID_SERVER_JOIN_DATA)
             {
                 // Show failed message and abort the attempt
-                CCore::GetSingleton().ShowNetErrorMessageBox(_("Error") + _E("CC33"), _("Bad server response (1)") + SString(" [%d]", ucPacketID));
+#if MAJORRP_PLAY_CONNECTING_STATE
+                if (!MajorRpShowConnectError(_("Bad server response (1)") + SString(" [%d]", ucPacketID)))
+#endif
+                    CCore::GetSingleton().ShowNetErrorMessageBox(_("Error") + _E("CC33"), _("Bad server response (1)") + SString(" [%d]", ucPacketID));
                 g_pConnectManager->Abort();
             }
         }

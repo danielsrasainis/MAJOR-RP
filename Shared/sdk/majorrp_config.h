@@ -74,3 +74,7 @@
 
 // 1 = Settings > Video: hide the "Fullscreen mode" row while "Windowed" is ticked (it does nothing then)
 #define MAJORRP_HIDE_FULLSCREEN_MODE_WHEN_WINDOWED 1
+
+// 1 = PLAY turns into "CONNECTING..." with a spinner instead of the Connecting message box;
+//     click it again to cancel. Connect errors show as orange text above PLAY.
+#define MAJORRP_PLAY_CONNECTING_STATE 1

@@ -226,6 +226,49 @@ CMainMenu::CMainMenu(CGUI* pManager)
     // MAJOR RP: a single "Connect to Major" button. No server browser, Host Game or Map Editor.
     m_menuItems.push_back(CreateItem(MENU_ITEM_QUICK_CONNECT, "menu_connect_major.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase + fGap * iMenuItemIndex++)));
     m_pMajorRpPlay = m_menuItems.back();
+#if MAJORRP_PLAY_CONNECTING_STATE
+    {
+        // "CONNECTING..." version of the PLAY pill laid over it, with a spinner in the icon spot
+        const SString strLangDir = g_pCore->GetLocalization()->GetLanguageDirectory(g_pLocalization->GetLanguage("en_US"));
+        m_pMajorRpConnecting = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pMajorRpPlay->image));
+        if (m_pMajorRpConnecting->LoadFromFile(PathJoin(strLangDir, "menu_connecting.png")))
+        {
+            m_pMajorRpConnecting->SetPosition(CVector2D(0, 0), true);
+            m_pMajorRpConnecting->SetSize(CVector2D(1, 1), true);
+            m_pMajorRpConnecting->SetProperty("MousePassThroughEnabled", "True");
+            m_pMajorRpConnecting->SetVisible(false);
+            for (int i = 0; i < 12; i++)
+            {
+                CGUIStaticImage* pFrame = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(m_pMajorRpConnecting));
+                if (!pFrame->LoadFromFile(PathJoin(strLangDir, SString("menu_spinner_%02d.png", i))))
+                {
+                    m_pManager->DestroyElementRecursive(pFrame);
+                    continue;
+                }
+                // Icon spot inside menu_connecting.png (from the image generator)
+                pFrame->SetPosition(CVector2D(0.2305f, 0.3598f), true);
+                pFrame->SetSize(CVector2D(0.0599f, 0.2805f), true);
+                pFrame->SetProperty("MousePassThroughEnabled", "True");
+                pFrame->SetVisible(i == 0);
+                m_majorRpSpinner.push_back(pFrame);
+            }
+        }
+        else
+        {
+            m_pManager->DestroyElementRecursive(m_pMajorRpConnecting);
+            m_pMajorRpConnecting = nullptr;
+        }
+
+        // Hint / error line above PLAY
+        m_pMajorRpStatus = reinterpret_cast<CGUILabel*>(pManager->CreateLabel(m_pCanvas, ""));
+        m_pMajorRpStatus->SetFont("majorrp-stat");
+        m_pMajorRpStatus->SetHorizontalAlign(CGUI_ALIGN_HORIZONTALCENTER);
+        m_pMajorRpStatus->SetVerticalAlign(CGUI_ALIGN_VERTICALCENTER);
+        m_pMajorRpStatus->SetProperty("InheritsAlpha", "False");
+        m_pMajorRpStatus->SetProperty("MousePassThroughEnabled", "True");
+        m_pMajorRpStatus->SetVisible(false);
+    }
+#endif
 #if MAJORRP_INGAME_HIDE_PLAY
     // Shown instead of PLAY while connected; closes the ESC menu
     m_pMajorRpContinue = CreateItem(MENU_ITEM_CONTINUE, "menu_continue.png", CVector2D(MAJORRP_MENU_CENTER_X, fBase));
@@ -453,6 +496,11 @@ CMainMenu::~CMainMenu()
     destroyElement(m_pLogo);
     destroyElement(m_pLatestNews);
     destroyElement(m_pVersion);
+#if MAJORRP_PLAY_CONNECTING_STATE
+    destroyElement(m_pMajorRpStatus);
+    m_pMajorRpConnecting = nullptr;  // child of the PLAY image, freed with it
+    m_majorRpSpinner.clear();
+#endif
 
     destroyElement(m_pCanvas);
     destroyElement(m_pBackground);
@@ -549,6 +597,9 @@ void CMainMenu::Update()
 {
 #if MAJORRP_MENU_V2
     MajorRpAnimate();
+#endif
+#if MAJORRP_PLAY_CONNECTING_STATE
+    MajorRpUpdateConnectState();
 #endif
     if (g_pCore->GetDiagnosticDebug() == EDiagnosticDebug::JOYSTICK_0000)
     {
@@ -945,6 +996,93 @@ void CMainMenu::SetIsIngame(bool bIsIngame)
     }
 }
 
+#if MAJORRP_PLAY_CONNECTING_STATE
+bool CMainMenu::MajorRpCanShowConnectState()
+{
+    return m_bIsVisible && m_pMajorRpStatus && !GetIsIngame();
+}
+
+void CMainMenu::MajorRpShowConnectError(const SString& strMessage)
+{
+    m_strMajorRpError = strMessage;
+    m_ulMajorRpErrorTick = GetTickCount32();
+}
+
+// Keep the status line centred just above the PLAY pill (follows its hover growth)
+void CMainMenu::MajorRpPlaceStatusLabel()
+{
+    const CVector2D vecPos = m_pMajorRpPlay->image->GetPosition(false);
+    const CVector2D vecSize = m_pMajorRpPlay->image->GetSize(false);
+    const float     fHeight = 30.0f;
+    m_pMajorRpStatus->SetSize(CVector2D(m_iMenuSizeX, fHeight), false);
+    // The pill image has transparent glow padding top and bottom (24 of 164 px)
+    m_pMajorRpStatus->SetPosition(CVector2D(0, vecPos.fY + vecSize.fY * 0.10f - fHeight), false);
+}
+
+void CMainMenu::MajorRpUpdateConnectState()
+{
+    if (!m_pMajorRpStatus)
+        return;
+
+    CConnectManager*    pConnect = CCore::GetSingleton().GetConnectManager();
+    const bool          bConnecting = pConnect && pConnect->IsConnecting() && !GetIsIngame();
+    const unsigned long ulNow = GetTickCount32();
+
+    if (bConnecting != m_bMajorRpConnectingShown)
+    {
+        m_bMajorRpConnectingShown = bConnecting;
+        if (m_pMajorRpConnecting)
+            m_pMajorRpConnecting->SetVisible(bConnecting);
+        if (bConnecting)
+            m_strMajorRpError.clear();
+    }
+
+    if (bConnecting && !m_majorRpSpinner.empty())
+    {
+        const unsigned int uiFrame = (ulNow / 70) % m_majorRpSpinner.size();
+        if (uiFrame != m_uiMajorRpSpinnerFrame)
+        {
+            m_majorRpSpinner[m_uiMajorRpSpinnerFrame % m_majorRpSpinner.size()]->SetVisible(false);
+            m_majorRpSpinner[uiFrame]->SetVisible(true);
+            m_uiMajorRpSpinnerFrame = uiFrame;
+        }
+    }
+
+    // Status line: hint while connecting, otherwise the last error for a few seconds
+    float   fAlpha = 0;
+    SString strText;
+    if (bConnecting)
+    {
+        strText = _("Click again to cancel");
+        m_pMajorRpStatus->SetTextColor(200, 192, 184);
+        fAlpha = 1;
+    }
+    else if (!m_strMajorRpError.empty())
+    {
+        const unsigned long ulAge = ulNow - m_ulMajorRpErrorTick;
+        if (ulAge < 6000)
+        {
+            strText = m_strMajorRpError;
+            m_pMajorRpStatus->SetTextColor(255, 140, 26);
+            fAlpha = ulAge < 5000 ? 1.0f : 1.0f - (ulAge - 5000) / 1000.0f;
+        }
+        else
+            m_strMajorRpError.clear();
+    }
+
+    if (fAlpha <= 0)
+    {
+        m_pMajorRpStatus->SetVisible(false);
+        return;
+    }
+    if (m_pMajorRpStatus->GetText() != strText)
+        m_pMajorRpStatus->SetText(strText);
+    MajorRpPlaceStatusLabel();
+    m_pMajorRpStatus->SetAlpha(fAlpha);
+    m_pMajorRpStatus->SetVisible(m_pMajorRpPlay->image->IsVisible());
+}
+#endif
+
 #if MAJORRP_INGAME_HIDE_PLAY
 // MAJOR RP: menu items for each state, one per slot from the top:
 //   on the menu:  PLAY, SETTINGS, ABOUT, QUIT
@@ -1115,6 +1253,15 @@ bool CMainMenu::OnQuickConnectButtonClick(CGUIElement* pElement, bool left)
 
     // MAJOR RP: left or right click both connect to the one server
     (void)left;
+#if MAJORRP_PLAY_CONNECTING_STATE
+    // Clicking "CONNECTING..." cancels the attempt
+    if (CConnectManager* pConnect = CCore::GetSingleton().GetConnectManager(); pConnect && pConnect->IsConnecting())
+    {
+        pConnect->Abort();
+        return true;
+    }
+    m_strMajorRpError.clear();
+#endif
     if (!g_pCore->IsNetworkReady())
     {
         ShowNetworkNotReadyWindow();
