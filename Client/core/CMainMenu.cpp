@@ -43,8 +43,9 @@
 #define CORE_MTA_NORMAL_ALPHA 0.92f
 #define MAJORRP_MENU_IMAGE_SCALE 0.5f  // button images are drawn at 2x for sharpness
 #define MAJORRP_UNHOVER_SPEED    0.5f
-#define MAJORRP_SOUND_HOVER      3     // GTA frontend "highlight"
-#define MAJORRP_SOUND_CLICK      1     // GTA frontend "select"
+    #define MAJORRP_MENU_ICON_SLIDE 0.018f  // icon moves left by this part of the button width on hover
+    #define MAJORRP_SOUND_HOVER     3       // GTA frontend "highlight"
+    #define MAJORRP_SOUND_CLICK     1       // GTA frontend "select"
 #else
 #define CORE_MTA_HOVER_SCALE  1.0f
 #define CORE_MTA_NORMAL_SCALE 0.6f
@@ -1714,6 +1715,19 @@ sMenuItem* CMainMenu::CreateItem(unsigned char menuType, const char* szFilename,
     }
     else
         m_pManager->DestroyElementRecursive(pHover);
+
+    // Icon as its own full-size layer on top (the pill pictures have an empty icon spot), so it can slide
+    SString          strIcon = SStringX(szFilename).Replace(".png", "_icon.png");
+    CGUIStaticImage* pIcon = reinterpret_cast<CGUIStaticImage*>(m_pManager->CreateStaticImage(pImage));
+    if (pIcon->LoadFromFile(PathJoin(g_pCore->GetLocalization()->GetLanguageDirectory(pLanguage), strIcon)))
+    {
+        pIcon->SetPosition(CVector2D(0, 0), true);
+        pIcon->SetSize(CVector2D(1, 1), true);
+        pIcon->SetProperty("MousePassThroughEnabled", "True");
+        s->iconImage = pIcon;
+    }
+    else
+        m_pManager->DestroyElementRecursive(pIcon);
 #endif
     return s;
 }
@@ -1734,6 +1748,8 @@ bool CMainMenu::SetItemHoverProgress(sMenuItem* pItem, float fProgress, bool bHo
     pItem->image->SetAlpha((CORE_MTA_HOVER_ALPHA - CORE_MTA_NORMAL_ALPHA) * (fProgress) + CORE_MTA_NORMAL_ALPHA);
     if (pItem->hoverImage)
         pItem->hoverImage->SetAlpha(fProgress);
+    if (pItem->iconImage)
+        pItem->iconImage->SetPosition(CVector2D(-MAJORRP_MENU_ICON_SLIDE * fProgress, 0), true);  // MAJOR RP: icon slides left
 
     int iSizeX = (pItem->nativeSizeX / NATIVE_RES_X) * m_iMenuSizeX * fTargetScale;
     int iSizeY = (pItem->nativeSizeY / NATIVE_RES_Y) * m_iMenuSizeY * fTargetScale;

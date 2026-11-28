@@ -34,6 +34,7 @@ struct sMenuItem
     int              nativeSizeY;
     CGUIStaticImage* image;
     CGUIStaticImage* hoverImage = nullptr;  // MAJOR RP: highlighted version, faded in on hover
+    CGUIStaticImage* iconImage = nullptr;   // MAJOR RP: the icon on its own, slides left on hover
     float            animProgress{};
 };
 
