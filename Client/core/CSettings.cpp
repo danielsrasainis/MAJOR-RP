@@ -2513,6 +2513,12 @@ void CSettings::PopulateResolutionComboBox()
 //
 void CSettings::UpdateFullScreenComboBoxEnabled()
 {
+#if MAJORRP_HIDE_FULLSCREEN_MODE_WHEN_WINDOWED
+    // MAJOR RP: the greyed-out row was hard to see in the dark skin, so hide it while Windowed is ticked
+    const bool bWindowed = m_pCheckBoxWindowed->GetSelected();
+    m_pFullscreenStyleLabel->SetVisible(!bWindowed);
+    m_pFullscreenStyleCombo->SetVisible(!bWindowed);
+#endif
     if (m_pCheckBoxWindowed->GetSelected())
     {
         m_pFullscreenStyleLabel->SetAlpha(0.42f);

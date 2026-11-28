@@ -71,3 +71,6 @@
 
 // 1 = in the ESC menu while connected, DISCONNECT replaces PLAY (menu: Disconnect, Settings, About, Quit)
 #define MAJORRP_INGAME_HIDE_PLAY 1
+
+// 1 = Settings > Video: hide the "Fullscreen mode" row while "Windowed" is ticked (it does nothing then)
+#define MAJORRP_HIDE_FULLSCREEN_MODE_WHEN_WINDOWED 1
