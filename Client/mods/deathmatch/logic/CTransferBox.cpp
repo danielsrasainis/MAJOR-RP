@@ -101,13 +101,10 @@ void CTransferBox::CreateMajorRPWindow()
     image(m_cancel, m_card.get(), "cgui\\images\\majorrp\\tb3_cancel.png", (W - 122) / 2, 362, 122, 38);
 }
 
-// MAJOR RP: while the server files download after joining, show the same moving camera as the
-// account login panel (instead of MTA's default Vinewood camera with the radar), so download -> login feels
-// like one scene. Camera start and drift copy account/c_login.lua loginScreens[1] and c_login_panel.lua slideScreen.
+// MAJOR RP: while the server files download after joining, a black screen behind the download box (no radar,
+// HUD or zone name). The camera waits at account/c_login.lua loginScreens[1] so the login scene is ready.
 void CTransferBox::MajorRpBackdropPulse()
 {
-    const CVector2D              screen = m_GUI->GetResolution();
-
     if (!m_backdropActive)
     {
         m_backdropActive = true;
@@ -127,22 +124,13 @@ void CTransferBox::MajorRpBackdropPulse()
         if (pHud->IsComponentVisible(component))
             pHud->SetComponentVisible(component, false);
 
-    // Camera: same start point and slow sideways drift as the login panel
-    m_slide += 0.0005f;
-    const float fMove = sinf(m_slide) * 0.15f;
-    m_camPos.fX += fMove;
-    m_camLook.fX += fMove;
+    // Camera held at the login panel's start point so that area is loaded when the login shows
     CStaticFunctionDefinitions::SetCameraMatrix(m_camPos, &m_camLook, 0, 70);
 
-    // Smooth start: the area is still streaming in for the first frames, so start from a dark screen
-    // and fade the camera in (no black flicker)
-    const float         fAge = static_cast<float>(GetTickCount64_() - m_backdropStartTick);
-    const float         fCover = 1.0f - std::max(0.0f, std::min(1.0f, (fAge - 250.0f) / 900.0f));
-    CGraphicsInterface* pGraphics = g_pCore->GetGraphics();
-
-    // Darkening like the login panel (0x64), starting from almost black
-    const unsigned long ulDark = static_cast<unsigned long>(std::max(100.0f, 245.0f * fCover));
-    pGraphics->DrawRectQueued(0, 0, screen.fX, screen.fY, (ulDark << 24) | 0x0A0806, false);
+    // Plain black screen behind the download box until the login panel shows (Danex, 2026-11-28): the world
+    // keeps streaming in behind it at the login camera spot, but nobody sees the half-loaded city
+    const CVector2D screen = m_GUI->GetResolution();
+    g_pCore->GetGraphics()->DrawRectQueued(0, 0, screen.fX, screen.fY, 0xFF000000, false);
 }
 
 void CTransferBox::MajorRpStopBackdrop() const
