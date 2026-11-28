@@ -118,9 +118,40 @@ private:
     // MAJOR RP: corner links and server status
     void                   MajorRpCreateCornerInfo();
     void                   MajorRpUpdateServerStatus();
-    bool                   OnMajorRpLinkClick(CGUIElement* pElement);
-    bool                   OnMajorRpLinkEnter(CGUIElement* pElement);
-    bool                   OnMajorRpLinkLeave(CGUIElement* pElement);
+    // One handler per link: the CGUIElement* a handler gets is not the same pointer as the
+    // CGUIStaticImage* we keep (multiple inheritance), so it can't be compared
+    void MajorRpLinkClick(int iLink);
+    void MajorRpLinkHover(int iLink, bool bHover);
+    bool OnMajorRpDiscordClick(CGUIElement*)
+    {
+        MajorRpLinkClick(0);
+        return true;
+    }
+    bool OnMajorRpYouTubeClick(CGUIElement*)
+    {
+        MajorRpLinkClick(1);
+        return true;
+    }
+    bool OnMajorRpDiscordEnter(CGUIElement*)
+    {
+        MajorRpLinkHover(0, true);
+        return true;
+    }
+    bool OnMajorRpYouTubeEnter(CGUIElement*)
+    {
+        MajorRpLinkHover(1, true);
+        return true;
+    }
+    bool OnMajorRpDiscordLeave(CGUIElement*)
+    {
+        MajorRpLinkHover(0, false);
+        return true;
+    }
+    bool OnMajorRpYouTubeLeave(CGUIElement*)
+    {
+        MajorRpLinkHover(1, false);
+        return true;
+    }
     CGUIStaticImage*       m_pMajorRpLinks[2] = {};
     CGUIStaticImage*       m_pMajorRpLinkHovers[2] = {};
     CGUIStaticImage*       m_pMajorRpDots[3] = {};  // green, red, grey

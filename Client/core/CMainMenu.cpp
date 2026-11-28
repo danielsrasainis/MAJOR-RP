@@ -1078,9 +1078,18 @@ void CMainMenu::MajorRpCreateCornerInfo()
         pLink->SetPosition(CVector2D(fX, fRowY), false);
         pLink->SetSize(vecSize, false);
         pLink->SetProperty("MouseCursorImage", "set:CGUI-Images image:MouseHand");
-        pLink->SetClickHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpLinkClick, this));
-        pLink->SetMouseEnterHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpLinkEnter, this));
-        pLink->SetMouseLeaveHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpLinkLeave, this));
+        if (i == 0)
+        {
+            pLink->SetClickHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpDiscordClick, this));
+            pLink->SetMouseEnterHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpDiscordEnter, this));
+            pLink->SetMouseLeaveHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpDiscordLeave, this));
+        }
+        else
+        {
+            pLink->SetClickHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpYouTubeClick, this));
+            pLink->SetMouseEnterHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpYouTubeEnter, this));
+            pLink->SetMouseLeaveHandler(GUI_CALLBACK(&CMainMenu::OnMajorRpYouTubeLeave, this));
+        }
 
         CGUIStaticImage* pHover = reinterpret_cast<CGUIStaticImage*>(pManager->CreateStaticImage(pLink));
         if (pHover->LoadFromFile(SString("cgui\\images\\majorrp\\%s_hover.png", szLinks[i])))
@@ -1123,41 +1132,22 @@ void CMainMenu::MajorRpCreateCornerInfo()
     m_pMajorRpServerText->SetPosition(CVector2D(vecOrigin.fX + m_ScreenSize.fX - fMargin - 500.0f * fScale, fRowY), false);
 }
 
-bool CMainMenu::OnMajorRpLinkClick(CGUIElement* pElement)
+void CMainMenu::MajorRpLinkClick(int iLink)
 {
-    SString strURL;
-    if (pElement == m_pMajorRpLinks[0])
-        strURL = "https://" MAJORRP_DISCORD_URL;
-    else if (pElement == m_pMajorRpLinks[1])
-        strURL = MAJORRP_YOUTUBE_URL;
-    if (strURL.empty())
-        return true;
-
+    const SString strURL = iLink == 0 ? SString("https://" MAJORRP_DISCORD_URL) : SString(MAJORRP_YOUTUBE_URL);
     CCore::GetSingleton().GetConsole()->Printf("Opening %s", *strURL);
     WriteDebugEvent(SString("MAJOR RP menu link: %s", *strURL));
     ShellExecuteNonBlocking("open", strURL);
 
-    // In fullscreen the browser opens behind the game, so it looked like nothing happened:
-    // minimize the game so the browser page is in front
+    // In fullscreen the browser opens behind the game: minimize the game so the page is in front
     if (HWND hWnd = CCore::GetSingleton().GetHookedWindow())
         PostMessage(hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-    return true;
 }
 
-bool CMainMenu::OnMajorRpLinkEnter(CGUIElement* pElement)
+void CMainMenu::MajorRpLinkHover(int iLink, bool bHover)
 {
-    for (int i = 0; i < 2; i++)
-        if (pElement == m_pMajorRpLinks[i] && m_pMajorRpLinkHovers[i])
-            m_pMajorRpLinkHovers[i]->SetAlpha(1);
-    return true;
-}
-
-bool CMainMenu::OnMajorRpLinkLeave(CGUIElement* pElement)
-{
-    for (int i = 0; i < 2; i++)
-        if (pElement == m_pMajorRpLinks[i] && m_pMajorRpLinkHovers[i])
-            m_pMajorRpLinkHovers[i]->SetAlpha(0);
-    return true;
+    if (m_pMajorRpLinkHovers[iLink])
+        m_pMajorRpLinkHovers[iLink]->SetAlpha(bHover ? 1.0f : 0.0f);
 }
 
 // Asks the server for its player count (same query the server browser uses), every 30 seconds
