@@ -411,6 +411,8 @@ Section "MAJOR RP (required)" SecCore
     Delete "$INSTDIR\MTA\locale\en_US\menu_about.png"            ; ABOUT button removed (Danex, 2026-11-28)
     Delete "$INSTDIR\MTA\locale\en_US\menu_about_hover.png"
     Delete "$INSTDIR\MTA\locale\en_US\menu_connecting_hover.png"
+    Delete "$INSTDIR\MTA\cgui\images\majorrp\tb3_cancel.png"   ; download box v5: no cancel button / stat boxes
+    Delete "$INSTDIR\MTA\cgui\images\majorrp\tb3_stat.png"
     WriteUninstaller "$INSTDIR\Uninstall.exe"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "${PRODUCT_NAME}"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayIcon" "$INSTDIR\${CLIENT_EXE}"

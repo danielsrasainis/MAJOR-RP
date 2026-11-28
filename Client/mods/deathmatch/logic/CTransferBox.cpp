@@ -42,10 +42,12 @@ CTransferBox::CTransferBox(TransferBoxType transferType) : m_GUI(g_pCore->GetGUI
 #endif
 }
 
-// MAJOR RP: download box v4 (no card, bottom of the screen: header, ring with percentage, resource name, stats, cancel pill)
+// MAJOR RP: download box v5 (Danex, 2026-11-28): bottom of the screen, only the header, the ring with the
+// percentage and "125 / 139 MB" under it. No resource names, speed, time left or cancel button.
 void CTransferBox::CreateMajorRPWindow()
 {
-    const float W = 400, H = 400;
+    const float R = 170;  // ring size
+    const float W = 400, H = 78 + R;
     CVector2D   screenSize = m_GUI->GetResolution();
 
     auto image = [&](std::unique_ptr<CGUIStaticImage>& img, CGUIElement* parent, const char* file, float x, float y, float w, float h) {
@@ -82,31 +84,17 @@ void CTransferBox::CreateMajorRPWindow()
     image(m_header, m_card.get(), "cgui\\images\\majorrp\\tb3_header.png", 0, 0, W, 74);
 
     // Ring with the percentage drawn in: ring/p000.png ... p100.png, swapped as the download moves
-    const float R = 210;
     image(m_ring, m_card.get(), "cgui\\images\\majorrp\\ring\\p000.png", (W - R) / 2, 78, R, R);
     m_ringFrame = 0;
-    label(m_resourceName, m_card.get(), "", "majorrp-stat", (W - 150) / 2, 78 + R / 2 + 18, 150, 18, 255, 140, 26);
-
-    const char* keys[3] = {"DOWNLOADED", "SPEED", "TIME LEFT"};
-    const float boxW = 101, gap = 16, x0 = (W - (boxW * 3 + gap * 2)) / 2;
-    for (int i = 0; i < 3; ++i)
-    {
-        const float x = x0 + i * (boxW + gap);
-        image(m_statBox[i], m_card.get(), "cgui\\images\\majorrp\\tb3_stat.png", x, 300, boxW, 46);
-        label(m_statKey[i], m_card.get(), keys[i], "default-small", x, 304, boxW, 16, 160, 160, 166);
-        label(m_statValue[i], m_card.get(), "-", "majorrp-stat", x, 321, boxW, 20, 255, 255, 255);
-    }
-
-    // The mouse cursor is hidden while downloading: ESC opens the menu, where Disconnect cancels
-    image(m_cancel, m_card.get(), "cgui\\images\\majorrp\\tb3_cancel.png", (W - 122) / 2, 362, 122, 38);
+    // "125 / 139 MB" under the percentage, inside the ring (m_resourceName used to show the resource name)
+    label(m_resourceName, m_card.get(), "", "majorrp-stat", (W - 150) / 2, 78 + R / 2 + 12, 150, 18, 255, 140, 26);
+    // ESC opens the menu, where Disconnect cancels the download
 }
 
 void CTransferBox::SetCurrentName(const char* szName)
 {
-    if (!m_majorRP || !szName || m_currentName == szName)
-        return;
-    m_currentName = szName;
-    m_resourceName->SetText(szName);
+    // MAJOR RP: resource names are not shown (the line under the percentage shows the downloaded MB)
+    (void)szName;
 }
 
 void CTransferBox::CreateTransferWindow()
@@ -186,35 +174,13 @@ void CTransferBox::SetDownloadProgress(uint64_t downloadedSizeTotal)
             m_ring->LoadFromFile(SString("cgui\\images\\majorrp\\ring\\p%03d.png", iFrame));
         }
 
-        // Smoothed download speed
-        const long long now = GetTickCount64_();
-        if (m_lastTick == 0 || downloadedSizeTotal < m_lastBytes)
-        {
-            m_lastTick = now;
-            m_lastBytes = downloadedSizeTotal;
-        }
-        else if (now - m_lastTick >= 500)
-        {
-            const double instant = (downloadedSizeTotal - m_lastBytes) * 1000.0 / (now - m_lastTick);
-            m_speed = (m_speed <= 0) ? instant : m_speed * 0.7 + instant * 0.3;
-            m_lastTick = now;
-            m_lastBytes = downloadedSizeTotal;
-        }
-
-        // "84 / 129 MB"
+        // "125 / 139 MB" (KB for small downloads)
         if (m_downloadTotalSize >= 1024 * 1024)
-            m_statValue[0]->SetText(
+            m_resourceName->SetText(
                 SString("%d / %d MB", static_cast<int>(downloadedSizeTotal >> 20), static_cast<int>((m_downloadTotalSize + (1 << 20) - 1) >> 20)).c_str());
         else
-            m_statValue[0]->SetText(
+            m_resourceName->SetText(
                 SString("%d / %d KB", static_cast<int>(downloadedSizeTotal >> 10), static_cast<int>((m_downloadTotalSize + 1023) >> 10)).c_str());
-        if (m_speed > 0)
-        {
-            m_statValue[1]->SetText(SString("%s/s", GetDataUnit(static_cast<uint64_t>(m_speed)).c_str()).c_str());
-            const uint64_t left = (m_downloadTotalSize > downloadedSizeTotal) ? m_downloadTotalSize - downloadedSizeTotal : 0;
-            const int      seconds = static_cast<int>(left / m_speed);
-            m_statValue[2]->SetText(SString("%d:%02d", seconds / 60, seconds % 60).c_str());  // "0:07"
-        }
         return;
     }
 
