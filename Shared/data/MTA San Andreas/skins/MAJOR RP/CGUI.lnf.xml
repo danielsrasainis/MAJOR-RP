@@ -221,6 +221,7 @@
     </WidgetLook>
 
     <WidgetLook name="CGUI/TabButton">
+        <Property name="MouseCursorImage" value="set:CGUI-Images image:MouseHand" />
         <Property name="NormalTextColour" value="FF9A9088" />
         <Property name="HoverTextColour" value="FFE8E2DC" />
         <Property name="PushedTextColour" value="FFFF8C1A" />
@@ -371,6 +372,7 @@
     </WidgetLook>
 
     <WidgetLook name="CGUI/Button">
+        <Property name="MouseCursorImage" value="set:CGUI-Images image:MouseHand" />
         <Property name="NormalTextColour" value="FFD8D0C8" />
         <Property name="HoverTextColour" value="FFFF8C1A" />
         <Property name="PushedTextColour" value="FFFF8C1A" />
@@ -1533,6 +1535,7 @@
     </WidgetLook>
 
     <WidgetLook name="CGUI/Checkbox">
+        <Property name="MouseCursorImage" value="set:CGUI-Images image:MouseHand" />
         <ImagerySection name="label">
             <TextComponent>
                 <Area>
@@ -1658,6 +1661,7 @@
     </WidgetLook>
 
     <WidgetLook name="CGUI/RadioButton">
+        <Property name="MouseCursorImage" value="set:CGUI-Images image:MouseHand" />
         <ImagerySection name="label">
             <TextComponent>
                 <Area>
@@ -1958,6 +1962,7 @@
   </WidgetLook>
 
     <WidgetLook name="CGUI/ComboEditbox">
+        <Property name="MouseCursorImage" value="set:CGUI-Images image:MouseHand" />
         <PropertyDefinition name="ReadOnlyBGColour" initialValue="FFB0B0B0" />
         <Property name="NormalTextColour" value="FFE8E2DC" />
         <Property name="SelectedTextColour" value="FF140E08" />
@@ -2053,6 +2058,7 @@
     </WidgetLook>
 
   <WidgetLook name="CGUI/Combobox">
+        <Property name="MouseCursorImage" value="set:CGUI-Images image:MouseHand" />
     <Child  type="CGUI/ComboEditbox" nameSuffix="__auto_editbox__">
       <Area>
         <Dim type="LeftEdge" >
@@ -2123,6 +2129,7 @@
   </WidgetLook>
   
     <WidgetLook name="CGUI/ImageButton">
+        <Property name="MouseCursorImage" value="set:CGUI-Images image:MouseHand" />
         <Property name="VertImageFormatting" value="Stretched" redrawOnWrite="true" />
         <Property name="HorzImageFormatting" value="Stretched" redrawOnWrite="true" />
 		<Property name="WantsMultiClickEvents" value="False" />

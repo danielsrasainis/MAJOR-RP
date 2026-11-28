@@ -601,6 +601,16 @@ void CMainMenu::Update()
 #if MAJORRP_PLAY_CONNECTING_STATE
     MajorRpUpdateConnectState();
 #endif
+#if MAJORRP_HAND_CURSOR
+    // Hand cursor while a menu pill is hovered (the pills sit under one invisible click area)
+    if (m_pMenuArea && (m_pHoveredItem != nullptr) != m_bMajorRpHandCursor)
+    {
+        m_bMajorRpHandCursor = m_pHoveredItem != nullptr;
+        const char* szImage = m_bMajorRpHandCursor ? "MouseHand" : "MouseArrow";
+        m_pMenuArea->SetProperty("MouseCursorImage", SString("set:CGUI-Images image:%s", szImage));
+        g_pCore->GetGUI()->SetMouseCursorImage(szImage);
+    }
+#endif
     if (g_pCore->GetDiagnosticDebug() == EDiagnosticDebug::JOYSTICK_0000)
     {
         m_pFiller->SetVisible(false);

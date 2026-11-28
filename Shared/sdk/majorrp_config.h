@@ -78,3 +78,6 @@
 // 1 = PLAY turns into "CONNECTING..." with a spinner instead of the Connecting message box;
 //     click it again to cancel. Connect errors show as orange text above PLAY.
 #define MAJORRP_PLAY_CONNECTING_STATE 1
+
+// 1 = hand cursor over the menu pills (skin buttons/checkboxes/tabs/combos get it from CGUI.lnf.xml)
+#define MAJORRP_HAND_CURSOR 1

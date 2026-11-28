@@ -153,6 +153,7 @@ public:
     void        SetCurrentServerCursorAlpha(float fAlpha);
     float       GetCurrentServerCursorAlpha();
     eCursorType GetCursorType();
+    void        SetMouseCursorImage(const char* szImageName);
 
     void                    AddChild(CGUIElement_Impl* pChild);
     CEGUI::FontManager*     GetFontManager();

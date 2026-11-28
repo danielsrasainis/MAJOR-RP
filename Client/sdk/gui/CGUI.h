@@ -129,6 +129,7 @@ public:
     virtual void        SetCurrentServerCursorAlpha(float fAlpha) = 0;
     virtual float       GetCurrentServerCursorAlpha() = 0;
     virtual eCursorType GetCursorType() = 0;
+    virtual void        SetMouseCursorImage(const char* szImageName) = 0;  // MAJOR RP: change the cursor now (skin image name)
 
     virtual CVector2D GetResolution() = 0;
     virtual void      SetResolution(float fWidth, float fHeight) = 0;

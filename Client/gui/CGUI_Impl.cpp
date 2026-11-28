@@ -760,6 +760,18 @@ eCursorType CGUI_Impl::GetCursorType()
         return CURSORTYPE_DEFAULT;
 }
 
+void CGUI_Impl::SetMouseCursorImage(const char* szImageName)
+{
+    try
+    {
+        CEGUI::MouseCursor::getSingleton().setImage("CGUI-Images", szImageName);
+    }
+    catch (const CEGUI::Exception&)
+    {
+        // Image missing from the skin: keep the current cursor
+    }
+}
+
 void CGUI_Impl::AddChild(CGUIElement_Impl* pChild)
 {
     if (!m_pTop)

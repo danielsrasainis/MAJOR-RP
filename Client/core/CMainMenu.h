@@ -111,6 +111,7 @@ private:
     SString                       m_strMajorRpError;
     unsigned long                 m_ulMajorRpErrorTick = 0;
     unsigned int                  m_uiMajorRpSpinnerFrame = 0;
+    bool                          m_bMajorRpHandCursor = false;
 
     sMenuItem* CreateItem(unsigned char menuType, const char* szFilename, CVector2D vecRelPosition);
     bool       SetItemHoverProgress(sMenuItem* pItem, float fProgress, bool bHovering);

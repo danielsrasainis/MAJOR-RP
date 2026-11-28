@@ -12,7 +12,8 @@
     <Image Name="Frame2Left" XPos="1" YPos="133" Width="5" Height="22" />
     <Image Name="FrameRight" XPos="60" YPos="172" Width="8" Height="17" />
     <Image Name="HeaderLine" XPos="30" YPos="10" Width="1" Height="1" />
-    <Image Name="MouseArrow" XPos="1" YPos="0" Width="12" Height="15" />
+    <Image Name="MouseArrow" XPos="2" YPos="258" Width="18" Height="26" XOffset="-2" YOffset="-2" />
+    <Image Name="MouseHand" XPos="24" YPos="258" Width="26" Height="28" XOffset="-10" YOffset="-1" />
     <Image Name="SButtonTop" XPos="6" YPos="164" Width="22" Height="5" />
     <Image Name="TabTopLeft" XPos="71" YPos="128" Width="4" Height="7" />
     <Image Name="ButtonRight" XPos="63" YPos="133" Width="5" Height="22" />
