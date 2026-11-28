@@ -82,13 +82,13 @@ SetFont "Inter" 8
 !define MUI_PAGE_HEADER_TEXT "CHOOSE COMPONENTS"
 !define MUI_PAGE_HEADER_SUBTEXT "Choose which features of MAJOR RP you want to install."
 !define MUI_COMPONENTSPAGE_NODESC
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpPageShow
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpShowNext
 !insertmacro MUI_PAGE_COMPONENTS
 
 !define MUI_PAGE_HEADER_TEXT "INSTALL LOCATION"
 !define MUI_PAGE_HEADER_SUBTEXT "Choose where to install MAJOR RP."
 !define MUI_DIRECTORYPAGE_TEXT_TOP "MAJOR RP will be installed in this folder. To use a different folder, click Browse."
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpPageShow
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpShowNext
 !insertmacro MUI_PAGE_DIRECTORY
 
 ; Second directory page: where GTA San Andreas is. The client reads this from the registry.
@@ -98,7 +98,7 @@ SetFont "Inter" 8
 !define MUI_DIRECTORYPAGE_TEXT_DESTINATION "GTA San Andreas folder"
 !define MUI_DIRECTORYPAGE_VARIABLE $GTA_DIR
 !define MUI_DIRECTORYPAGE_VERIFYONLEAVE
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpPageShow
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpShowInstall
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE GtaDirLeave
 !insertmacro MUI_PAGE_DIRECTORY
 
@@ -107,7 +107,7 @@ SetFont "Inter" 8
 !define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "INSTALLATION COMPLETE"
 !define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "MAJOR RP was installed successfully."
 !define MUI_INSTFILESPAGE_ABORTHEADER_TEXT "INSTALLATION ABORTED"
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpPageShow
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW MrpShowNext
 !insertmacro MUI_PAGE_INSTFILES
 
 ; Starting the game from here (still as admin) lets its one-time first-run setup finish without
@@ -121,14 +121,14 @@ SetFont "Inter" 8
 
 !define MUI_PAGE_HEADER_TEXT "UNINSTALL MAJOR RP"
 !define MUI_PAGE_HEADER_SUBTEXT "Remove MAJOR RP from your computer."
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.MrpPageShow
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.MrpShowUninstall
 !insertmacro MUI_UNPAGE_CONFIRM
 !define MUI_PAGE_HEADER_TEXT "UNINSTALLING"
 !define MUI_PAGE_HEADER_SUBTEXT "Please wait while MAJOR RP is being removed."
 !define MUI_UNINSTFILESPAGE_FINISHHEADER_TEXT "UNINSTALL COMPLETE"
 !define MUI_UNINSTFILESPAGE_FINISHHEADER_SUBTEXT "MAJOR RP was removed from your computer."
 !define MUI_UNINSTFILESPAGE_ABORTHEADER_TEXT "UNINSTALL ABORTED"
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.MrpPageShow
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.MrpShowClose
 !insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
@@ -153,6 +153,29 @@ Var MrpFontMono
     File "/oname=$PLUGINSDIR\anton.ttf" "majorrp\anton.ttf"
     System::Call 'gdi32::AddFontResourceEx(t "$PLUGINSDIR\inter.otf", i 0x10, p 0) i'
     System::Call 'gdi32::AddFontResourceEx(t "$PLUGINSDIR\anton.ttf", i 0x10, p 0) i'
+    ; button pictures (Windows push buttons can't be coloured, so they show a picture of an orange button)
+    SetOutPath "$PLUGINSDIR\buttons"
+    File "majorrp\buttons\*.bmp"
+    SetOutPath "$PLUGINSDIR"
+!macroend
+
+; Put a button picture on one of the main buttons: BS_BITMAP | BS_FLAT, classic look, picture at the button's size
+!macro MRP_BUTTON_IMAGE ID NAME
+    GetDlgItem $0 $HWNDPARENT ${ID}
+    System::Call 'user32::GetWindowLong(p r0, i -16) i .r1'
+    IntOp $1 $1 | 0x8080
+    System::Call 'user32::SetWindowLong(p r0, i -16, i r1) i'
+    !insertmacro MRP_PLAIN_CONTROL $0
+    System::Call '*(i,i,i,i) p .r1'
+    System::Call 'user32::GetClientRect(p r0, p r1)'
+    System::Call '*$1(i,i,i .r2,i .r3)'
+    System::Free $1
+    System::Call 'user32::LoadImage(p 0, t "$PLUGINSDIR\buttons\${NAME}.bmp", i 0, i r2, i r3, i 0x10) p .r1'
+    SendMessage $0 0xF7 0 $1 $1   ; BM_SETIMAGE, returns the old picture
+    ${If} $1 != 0
+        System::Call 'gdi32::DeleteObject(p r1)'
+    ${EndIf}
+    System::Call 'user32::InvalidateRect(p r0, p 0, i 1)'
 !macroend
 
 ; Dark Windows look for a button / checkbox / scroll bar (Windows 10 1809+; older Windows ignores it)
@@ -188,13 +211,13 @@ Function ${UN}MrpGuiInit
     SetCtlColors $mui.Branding.Background ${MRP_BG} ${MRP_BG}
     SetCtlColors $mui.Branding.Text ${MRP_BG} ${MRP_BG}
 
-    ; Back / Next / Cancel
-    GetDlgItem $0 $HWNDPARENT 1
-    !insertmacro MRP_DARK_CONTROL $0
-    GetDlgItem $0 $HWNDPARENT 2
-    !insertmacro MRP_DARK_CONTROL $0
-    GetDlgItem $0 $HWNDPARENT 3
-    !insertmacro MRP_DARK_CONTROL $0
+FunctionEnd
+
+; Back / Next / Cancel pictures; $R9 = picture for the Next button (next, install, finish, uninstall, close)
+Function ${UN}MrpButtons
+    !insertmacro MRP_BUTTON_IMAGE 3 "back"
+    !insertmacro MRP_BUTTON_IMAGE 1 $R9
+    !insertmacro MRP_BUTTON_IMAGE 2 "cancel"
 FunctionEnd
 
 ; Colours every control of the inner page that is showing (components, folders, progress, uninstall)
@@ -272,9 +295,30 @@ Function ${UN}MrpPageShow
         SendMessage $0 ${WM_SETFONT} $MrpFontMono 1
     ${EndIf}
 FunctionEnd
+Function ${UN}MrpShowNext
+    StrCpy $R9 "next"
+    Call ${UN}MrpButtons
+    Call ${UN}MrpPageShow
+FunctionEnd
 !macroend
 !insertmacro MRP_FUNCTIONS ""
 !insertmacro MRP_FUNCTIONS "un."
+
+Function MrpShowInstall
+    StrCpy $R9 "install"
+    Call MrpButtons
+    Call MrpPageShow
+FunctionEnd
+Function un.MrpShowUninstall
+    StrCpy $R9 "uninstall"
+    Call un.MrpButtons
+    Call un.MrpPageShow
+FunctionEnd
+Function un.MrpShowClose
+    StrCpy $R9 "close"
+    Call un.MrpButtons
+    Call un.MrpPageShow
+FunctionEnd
 
 ; Welcome / Finish: side picture over the full (taller) page height, Anton title
 !macro MRP_FULLPAGE PAGE IMAGE BITMAP TITLE
@@ -291,11 +335,15 @@ FunctionEnd
 !macroend
 
 Function MrpWelcomeShow
+    StrCpy $R9 "next"
+    Call MrpButtons
     !insertmacro MRP_FULLPAGE $mui.WelcomePage $mui.WelcomePage.Image $mui.WelcomePage.Image.Bitmap $mui.WelcomePage.Title
     SetCtlColors $mui.WelcomePage.Text ${MRP_SUB} ${MRP_BG}
 FunctionEnd
 
 Function MrpFinishShow
+    StrCpy $R9 "finish"
+    Call MrpButtons
     !insertmacro MRP_FULLPAGE $mui.FinishPage $mui.FinishPage.Image $mui.FinishPage.Image.Bitmap $mui.FinishPage.Title
     SetCtlColors $mui.FinishPage.Text ${MRP_SUB} ${MRP_BG}
     ; themed check boxes ignore text colours (black text on dark), so use the classic look
