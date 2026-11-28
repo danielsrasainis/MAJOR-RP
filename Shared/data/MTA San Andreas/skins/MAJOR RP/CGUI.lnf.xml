@@ -123,42 +123,76 @@
             </TextComponent>
         </ImagerySection>
         <ImagerySection name="normal">
-            <FrameComponent>
+            <!-- MAJOR RP: corners and middle all stretched to the bar height so the orange line lines up -->
+            <ImageryComponent>
                 <Area>
                     <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
                     <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
-                    <Dim type="RightEdge"><UnifiedDim scale="1" type="RightEdge" /></Dim>
+                    <Dim type="Width"><AbsoluteDim value="18" /></Dim>
                     <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
                 </Area>
-                <Image type="TopLeftCorner" imageset="CGUI-Images" image="TitleBarTopLeft" />
-                <Image type="TopRightCorner" imageset="CGUI-Images" image="TitleBarTopRight" />
-                <Image type="BottomLeftCorner" imageset="CGUI-Images" image="TitleBarBorder" />
-                <Image type="BottomRightCorner" imageset="CGUI-Images" image="TitleBarBorder" />
-                <Image type="LeftEdge" imageset="CGUI-Images" image="TitleBarBorder" />
-                <Image type="TopEdge" imageset="CGUI-Images" image="TitleBarTop" />
-                <Image type="RightEdge" imageset="CGUI-Images" image="TitleBarBorder" />
-                <Image type="BottomEdge" imageset="CGUI-Images" image="TitleBarBackground" />
-                <Image type="Background" imageset="CGUI-Images" image="TitleBarBackground" />
-            </FrameComponent>
+                <Image imageset="CGUI-Images" image="TitleBarTopLeft" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="18" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="RightEdge"><UnifiedDim scale="1" offset="-18" type="RightEdge" /></Dim>
+                    <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
+                </Area>
+                <Image imageset="CGUI-Images" image="TitleBarBackground" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><UnifiedDim scale="1" offset="-18" type="RightEdge" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><AbsoluteDim value="18" /></Dim>
+                    <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
+                </Area>
+                <Image imageset="CGUI-Images" image="TitleBarTopRight" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
         </ImagerySection>
         <ImagerySection name="selected">
-            <FrameComponent>
+            <!-- MAJOR RP: corners and middle all stretched to the bar height so the orange line lines up -->
+            <ImageryComponent>
                 <Area>
                     <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
                     <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
-                    <Dim type="RightEdge"><UnifiedDim scale="1" type="RightEdge" /></Dim>
+                    <Dim type="Width"><AbsoluteDim value="18" /></Dim>
                     <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
                 </Area>
-                <Image type="TopLeftCorner" imageset="CGUI-Images" image="TitleBarTopLeftSelected" />
-                <Image type="TopRightCorner" imageset="CGUI-Images" image="TitleBarTopRightSelected" />
-                <Image type="BottomLeftCorner" imageset="CGUI-Images" image="TitleBarBorder" />
-                <Image type="BottomRightCorner" imageset="CGUI-Images" image="TitleBarBorder" />
-                <Image type="LeftEdge" imageset="CGUI-Images" image="TitleBarBorder" />
-                <Image type="TopEdge" imageset="CGUI-Images" image="TitleBarTopSelected" />
-                <Image type="RightEdge" imageset="CGUI-Images" image="TitleBarBorder" />
-                <Image type="BottomEdge" imageset="CGUI-Images" image="TitleBarBackgroundSelected" />
-                <Image type="Background" imageset="CGUI-Images" image="TitleBarBackgroundSelected" />
-            </FrameComponent>
+                <Image imageset="CGUI-Images" image="TitleBarTopLeftSelected" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="18" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="RightEdge"><UnifiedDim scale="1" offset="-18" type="RightEdge" /></Dim>
+                    <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
+                </Area>
+                <Image imageset="CGUI-Images" image="TitleBarBackgroundSelected" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><UnifiedDim scale="1" offset="-18" type="RightEdge" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><AbsoluteDim value="18" /></Dim>
+                    <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
+                </Area>
+                <Image imageset="CGUI-Images" image="TitleBarTopRightSelected" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
         </ImagerySection>
         <StateImagery name="Active">
             <Layer>
