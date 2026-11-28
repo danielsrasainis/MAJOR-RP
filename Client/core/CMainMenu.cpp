@@ -1125,10 +1125,22 @@ void CMainMenu::MajorRpCreateCornerInfo()
 
 bool CMainMenu::OnMajorRpLinkClick(CGUIElement* pElement)
 {
+    SString strURL;
     if (pElement == m_pMajorRpLinks[0])
-        ShellExecuteNonBlocking("open", "https://" MAJORRP_DISCORD_URL);
+        strURL = "https://" MAJORRP_DISCORD_URL;
     else if (pElement == m_pMajorRpLinks[1])
-        ShellExecuteNonBlocking("open", MAJORRP_YOUTUBE_URL);
+        strURL = MAJORRP_YOUTUBE_URL;
+    if (strURL.empty())
+        return true;
+
+    CCore::GetSingleton().GetConsole()->Printf("Opening %s", *strURL);
+    WriteDebugEvent(SString("MAJOR RP menu link: %s", *strURL));
+    ShellExecuteNonBlocking("open", strURL);
+
+    // In fullscreen the browser opens behind the game, so it looked like nothing happened:
+    // minimize the game so the browser page is in front
+    if (HWND hWnd = CCore::GetSingleton().GetHookedWindow())
+        PostMessage(hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
     return true;
 }
 
